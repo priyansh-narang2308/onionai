@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "onion.ai | Social Media Scheduling",
-  description: "Create AI-powered social media scheduling for every platform in seconds. Lemon.ai is a platform that allows you to create social media scheduling for every platform in seconds.",
+  description: "Create AI-powered social media scheduling for every platform in seconds. onion.ai is a platform that allows you to create social media scheduling for every platform in seconds.",
 };
 
 export default function RootLayout({
