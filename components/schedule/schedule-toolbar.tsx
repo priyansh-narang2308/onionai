@@ -68,10 +68,10 @@ const ScheduleToolbar = ({
           <PopoverContent className="w-48 p-2" align="end">
             <div className="space-y-1">
               {statusOptions.map((option) => (
-                <button
+                <div
                   key={option.id}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors",
+                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors cursor-pointer",
                     selectedStatus === option.id && "bg-muted font-medium"
                   )}
                   onClick={() => setSelectedStatus(option.id)}
@@ -81,7 +81,7 @@ const ScheduleToolbar = ({
                     className="pointer-events-none"
                   />
                   <span>{option.label}</span>
-                </button>
+                </div>
               ))}
             </div>
           </PopoverContent>
