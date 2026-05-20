@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lemon.ai | Social Media Scheduling",
+  title: "onion.ai | Social Media Scheduling",
   description: "Create AI-powered social media scheduling for every platform in seconds. Lemon.ai is a platform that allows you to create social media scheduling for every platform in seconds.",
 };
 
