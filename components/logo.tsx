@@ -34,7 +34,7 @@ const Logo = ({
 
       {!hideName && (
         <span className="text-lg font-bold tracking-tight">
-          <span className="text-white">onion</span>
+          <span className="text-black">onion</span>
           <span className="text-violet-400">.ai</span>
         </span>
       )}
