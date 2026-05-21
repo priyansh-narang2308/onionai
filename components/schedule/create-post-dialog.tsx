@@ -7,7 +7,7 @@ import { ImageObject } from "@/types/post.type";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Lightbulb, ScanEye, Wand2 } from "lucide-react";
+import { AlertTriangle, Lightbulb, ScanEye, Wand2, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -298,25 +298,34 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className={cn(
-                "sm:w-full sm:min-w-[700px] gap-0 px-0 pt-0 pb-0",
+                "sm:w-full sm:min-w-[700px] gap-0 px-0 pt-0 pb-0 overflow-hidden bg-background/95 backdrop-blur-md border border-border/60 shadow-2xl rounded-2xl transition-all duration-300",
                 selectedRightTab && "sm:max-w-[950px]"
             )}>
                 <div>
-                    <DialogHeader className="px-8 py-3 border-b">
+                    <DialogHeader className="px-8 py-3.5 border-b border-border/50 bg-gradient-to-r from-background to-muted/10">
                         <div className="flex items-center justify-between">
-                            <DialogTitle className="font-semibold">Create Post</DialogTitle>
-                            <div className="flex items-center gap-px">
-                                {rightTabs.map((tab) => (
-                                    <Button
-                                        key={tab.id}
-                                        variant={selectedRightTab === tab.id ? "default" : "ghost"}
-                                        className={cn(!selectedRightTab && "size-8")}
-                                        onClick={() => handleSelectRightTab(tab.id)}
-                                    >
-                                        <tab.icon className="size-4" />
-                                        <span className={cn(!selectedRightTab && "hidden")}> {tab.label}</span>
-                                    </Button>
-                                ))}
+                            <DialogTitle className="font-semibold text-lg tracking-tight text-foreground/90">Create Post</DialogTitle>
+                            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border/40 mr-8">
+                                {rightTabs.map((tab) => {
+                                    const isActive = selectedRightTab === tab.id;
+                                    return (
+                                        <Button
+                                            key={tab.id}
+                                            variant="ghost"
+                                            size="sm"
+                                            className={cn(
+                                                "h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer",
+                                                isActive 
+                                                    ? "bg-background text-foreground shadow-sm border border-border/20 font-semibold" 
+                                                     : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+                                            )}
+                                            onClick={() => handleSelectRightTab(tab.id)}
+                                        >
+                                            <tab.icon className={cn("size-3.5 mr-1.5", isActive ? "text-primary animate-pulse" : "text-muted-foreground")} />
+                                            <span>{tab.label}</span>
+                                        </Button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </DialogHeader>
@@ -326,38 +335,42 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
 
                         {/* Left — channel list */}
                         <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
-                            <div className="channel--selector py-5  px-8">
-                                {channels?.length > 0 && !isPending && (
-                                    <button
-                                        className="mb-4 text-[13px] font-medium cursor-pointer"
-                                        onClick={handleSelectAll}
-                                    >
-                                        {selectedChannels.length === connectedChannels.length ? "Unselect all" : "Select all"}
-                                    </button>
-                                )}
-                                <div className="flex flex-wrap gap-4">
+                            <div className="channel--selector py-5 px-8 border-b border-border/40 bg-muted/5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+                                        Publish to
+                                    </span>
+                                    {connectedChannels.length > 0 && (
+                                        <button
+                                            className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/5 hover:bg-primary/10 px-2 py-1 rounded-md"
+                                            onClick={handleSelectAll}
+                                        >
+                                            {selectedChannels.length === connectedChannels.length ? "Unselect all" : "Select all"}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-3">
                                     {isPending ? (
                                         Array.from({ length: 6 }).map((_, index) => (
-                                            <Skeleton key={index} className="size-[50px] rounded-xl" />
+                                            <Skeleton key={index} className="size-[42px] rounded-xl" />
                                         ))
                                     ) : (
                                         channels?.map((channel) => {
                                             const selected = selectedChannels.includes(channel.id)
                                             const isConnected = channel.connected
                                             return (
-                                                <Tooltip>
+                                                <Tooltip key={channel.id}>
                                                     <TooltipTrigger asChild>
                                                         <button
-                                                            key={channel.id}
                                                             style={{ "--channel-color": channel.color } as React.CSSProperties}
                                                             className={cn(
-                                                                "relative shrink-0 rounded-xl p-0 transition-all",
-                                                                !isConnected ? "cursor-not-allowed" : "cursor-pointer",
-                                                                selected ? "ring-2 ring-(--channel-color) ring-offset-1" : "grayscale!"
+                                                                "relative shrink-0 rounded-xl p-0 transition-all duration-200",
+                                                                !isConnected ? "cursor-not-allowed opacity-40 grayscale hover:opacity-65" : "cursor-pointer hover:scale-105 active:scale-95",
+                                                                selected ? "ring-2 ring-(--channel-color) ring-offset-2 scale-105 shadow-[0_0_12px_var(--channel-color)]" : ""
                                                             )}
                                                             onClick={() => {
                                                                 if (!isConnected) {
-                                                                    toast.error("Please connect the channel first");
+                                                                    toast.error("Please connect the channel first in Settings");
                                                                     return;
                                                                 }
 
@@ -368,16 +381,15 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                                                             }}>
 
                                                             <ChannelAvatar
-                                                                className=""
+                                                                className="size-[42px] transition-transform duration-200"
                                                                 type={channel.type}
                                                                 color={channel.color}
                                                                 profileImage={channel.profile_image}
                                                             />
                                                         </button>
                                                     </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        Preview {channel.name}
-                                                        {!isConnected && <span className="text-primary"> → Connect Channel</span>}
+                                                    <TooltipContent side="bottom" className="text-xs">
+                                                        {isConnected ? `Select ${channel.name}` : `Connect ${channel.name} under Settings`}
                                                     </TooltipContent>
                                                 </Tooltip>
                                             )
@@ -386,25 +398,35 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                                 </div>
                             </div>
 
-                            <div className="channel--content relative 
-                                        flex flex-col px-8 min-h-[300px] 
-                                        h-full overflow-y-auto">
+                            <div className="channel--content relative flex flex-col px-8 min-h-[300px] h-full overflow-y-auto pt-5">
                                 {selectedChannels.length === 0 ? (
-                                    <div className="border rounded-xl p-4">
-                                        <ContentTextarea
-                                            value={globalContent?.text || ""}
-                                            images={globalContent?.images || []}
-                                            placeholder="Write your main content here..
-        . It will be copied to channels when you select them"
-                                            minHeight={270}
-                                            showAIAssistant={true}
-                                            disabled={!hasConnectedChannel}
-                                            contentClass="text-sm placeholder:opacity-50 pt-0!"
-                                            onChange={(text) => handleGlobalContentChange(text)}
-                                            onImagesChange={(images) =>
-                                                handleGlobalContentChange(globalContent.text, images)
-                                            }
-                                        />
+                                    <div className="space-y-4">
+                                        {!hasConnectedChannel && (
+                                            <div className="flex items-start gap-3 rounded-2xl border border-amber-200/50 bg-amber-50/50 p-4 text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-300 shadow-sm animate-pulse-subtle">
+                                                <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                                <div className="space-y-1">
+                                                    <h4 className="text-sm font-semibold leading-none">No channels connected</h4>
+                                                    <p className="text-xs text-amber-700/90 dark:text-amber-400/80 leading-normal">
+                                                        You need to connect at least one social media channel to begin writing and scheduling posts.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="bg-card/45 backdrop-blur-xs border border-border/80 rounded-2xl p-5 shadow-inner transition-all duration-300 focus-within:border-primary/45 focus-within:ring-2 focus-within:ring-primary/10">
+                                            <ContentTextarea
+                                                value={globalContent?.text || ""}
+                                                images={globalContent?.images || []}
+                                                placeholder="Write your main content here... It will automatically copy to your channels when you select them."
+                                                minHeight={270}
+                                                showAIAssistant={true}
+                                                disabled={!hasConnectedChannel}
+                                                contentClass="text-base placeholder:text-muted-foreground/60 leading-relaxed pt-0!"
+                                                onChange={(text) => handleGlobalContentChange(text)}
+                                                onImagesChange={(images) =>
+                                                    handleGlobalContentChange(globalContent.text, images)
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                 ) : (
                                     <Accordion
@@ -582,16 +604,15 @@ dark:text-amber-400">
                     </div>
                 </div>
 
-                <DialogFooter className="px-8 pt-5 pb-4 m-0!">
+                <DialogFooter className="px-8 pt-4 pb-5 m-0! border-t border-border/40 bg-muted/20">
                     {hasConnectedChannel ? (
-                        <div className="w-full flex items-center justify-between
-                        gap-2
-                        ">
+                        <div className="w-full flex items-center justify-between gap-2">
                             <Button
                                 size="lg"
                                 variant="ghost"
                                 disabled={createPostMutation.isPending}
                                 onClick={() => handleCreatePost(POST_STATUS.DRAFT)}
+                                className="cursor-pointer"
                             >
                                 {createPostMutation.isPending && createPostMutation.variables.status === POST_STATUS.DRAFT && <Spinner />}
                                 Save Draft
@@ -604,7 +625,7 @@ dark:text-amber-400">
                                     setTime={setTimeSlot}
                                     renderButton={(isDatePassed, isTimeNotAvailable) => <Button
                                         size="lg"
-                                        className="border py-4.5 px-4"
+                                        className="border py-4.5 px-4 cursor-pointer"
                                         disabled={createPostMutation.isPending || !date || !timeSlot || isDatePassed || isTimeNotAvailable}
                                         onClick={() => {
                                             if (isDatePassed || isTimeNotAvailable) {
@@ -622,8 +643,15 @@ dark:text-amber-400">
                             </ButtonGroup>
                         </div>
                     ) : (
-                        <Button size="lg" asChild>
-                            <Link href="/settings"> Connect Channel to Post</Link>
+                        <Button 
+                            size="lg" 
+                            className="group/btn px-6 py-5.5 rounded-xl font-semibold shadow-lg hover:shadow-primary/10 hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary text-primary-foreground flex items-center gap-2 cursor-pointer" 
+                            asChild
+                        >
+                            <Link href="/settings">
+                                Connect Channel to Post
+                                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+                            </Link>
                         </Button>
                     )}
                 </DialogFooter>

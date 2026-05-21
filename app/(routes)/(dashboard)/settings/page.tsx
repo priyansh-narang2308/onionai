@@ -23,15 +23,15 @@ const SettingsPage = () => {
           <Tabs defaultValue="channels">
             <div className="mb-6 w-full border-b">
               <TabsList variant="line" className="w-fit space-x-4
-              group-data-horizontal/tabs:h-12
+              group-data-horizontal/tabs:h-12 cursor-pointer
               ">
-                <TabsTrigger value="profile">
+                <TabsTrigger value="profile" className="cursor-pointer">
                   <User className="size-4" />
                   Profile</TabsTrigger>
-                <TabsTrigger value="channels">
+                <TabsTrigger value="channels" className="cursor-pointer">
                   <Layers className="size-4" />
                   Channels</TabsTrigger>
-                <TabsTrigger value="appearance">
+                <TabsTrigger value="appearance" className="cursor-pointer">
                   <Palette className="size-4" />
                   Appearance</TabsTrigger>
               </TabsList>
@@ -101,6 +101,7 @@ const SettingsPage = () => {
                     </div>
                     <Switch
                       id="theme"
+                      className="cursor-pointer"
                       checked={theme === "dark"}
                       onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                     />

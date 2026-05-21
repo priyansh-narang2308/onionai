@@ -116,6 +116,7 @@ const ContentTextarea = ({
         //minHeight={minHeight}
         className={cn(
           "flex-[0.2] bg-transparent ring-0! border-none! resize-none! pt-0! pl-0! pr-0!",
+          "disabled:bg-transparent! dark:disabled:bg-transparent! dark:bg-transparent!",
           "placeholder:text-muted-foreground/80 overflow-y-auto",
           disabled && "opacity-50 cursor-not-allowed",
           contentClass
@@ -128,27 +129,25 @@ const ContentTextarea = ({
         style={{ minHeight: `${minHeight}px`, maxHeight: `${minHeight}px` }}
       />
 
-      <div className="shrink-0 space-y-0 -mt-4">
+      <div className="shrink-0 space-y-3 mt-4">
         <div className="flex items-center gap-3">
           <div
             onClick={() => !isUploading && !disabled && fileInputRef.current?.click()}
             className={cn(
-              `shrink-0 size-24 border-2 border-dashed border-muted-foreground/25
-               rounded-lg flex flex-col items-center 
-              justify-center cursor-pointer hover:border-muted-foreground/50
-               hover:bg-muted/50 
-              transition-colors mb-3 shadow-sm`,
-              (isUploading || disabled) && "opacity-50 cursor-not-allowed",
+              "group/upload shrink-0 size-24 border border-dashed border-border/80 hover:border-primary/50",
+              "rounded-xl flex flex-col items-center justify-center cursor-pointer bg-muted/40 hover:bg-primary/5",
+              "transition-all duration-300 shadow-sm",
+              (isUploading || disabled) && "opacity-50 cursor-not-allowed pointer-events-none",
               disabled && "grayscale"
             )}
           >
             {isUploading ? (
-              <Spinner />
+              <Spinner className="text-primary animate-spin" />
             ) : (
-              <ImagePlus className="h-5 w-5 text-muted-foreground mb-1" />
+              <ImagePlus className="h-5.5 w-5.5 text-muted-foreground/75 group-hover/upload:text-primary group-hover/upload:scale-110 transition-all duration-300 mb-1" />
             )}
-            <span className="text-sm text-muted-foreground">
-              {isUploading ? "Uploading..." : "Select File"}
+            <span className="text-xs font-semibold text-muted-foreground/80 group-hover/upload:text-primary transition-colors duration-300">
+              {isUploading ? "Uploading..." : "Add Media"}
             </span>
           </div>
           <input
@@ -165,16 +164,16 @@ const ContentTextarea = ({
               {images.map((image, index) => (
                 <div
                   key={image.key || index}
-                  className="shrink-0 relative size-24 rounded-lg overflow-hidden border"
+                  className="group/image shrink-0 relative size-24 rounded-xl overflow-hidden border border-border/80 shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   <img
                     src={image.url}
                     alt={`Upload ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover/image:scale-105 transition-transform duration-300"
                   />
                   <button
                     onClick={() => handleRemoveImage(index)}
-                    className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
+                    className="absolute top-1 right-1 bg-black/50 hover:bg-destructive hover:scale-110 text-white rounded-full p-1 transition-all duration-200 cursor-pointer shadow"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -184,12 +183,17 @@ const ContentTextarea = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between pt-3 border-t border-border/40">
+          <div className="flex items-center gap-1.5">
             <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
               <PopoverTrigger asChild>
-                <Button size="icon" className="cursor-pointer" variant="ghost" disabled={disabled}>
-                  <SmileIcon className="h-5 w-5" />
+                <Button 
+                  size="icon-sm" 
+                  className="cursor-pointer rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200" 
+                  variant="ghost" 
+                  disabled={disabled}
+                >
+                  <SmileIcon className="h-4.5 w-4.5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="start" className="w-[300px] p-0!">
@@ -212,16 +216,16 @@ const ContentTextarea = ({
                 </EmojiPicker>
               </PopoverContent>
             </Popover>
-            <Separator orientation="vertical" className="mx-0 my-1.5" />
+            <Separator orientation="vertical" className="mx-0 my-1.5 h-4" />
             {showAIAssistant && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-1 h-7 gap-1.5 text-sm"
+                className="ml-1 h-8 gap-1.5 text-xs font-semibold rounded-lg bg-primary/5 text-lime-500 hover:bg-lime-500/10 hover:text-lime-500  transition-all duration-200 cursor-pointer"
                 onClick={onAIAssistantClick}
                 disabled={disabled}
               >
-                <Wand2Icon className="h-3.5 w-3.5" />
+                <Wand2Icon className="h-3.5 w-3.5 text-lime-500" />
                 AI Assistant
               </Button>
             )}

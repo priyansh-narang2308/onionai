@@ -91,7 +91,7 @@ export function GenerateIdeasPopover({ onGenerated }: GenerateIdeasPopoverProps)
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" className="gap-2 
-        bg-linear-to-r from-[#b0ec9c33] to-[#d1bdff33]">
+        bg-linear-to-r from-[#b0ec9c33] to-[#d1bdff33] cursor-pointer">
           <Sparkles className="h-4 w-4" />
           Generate Ideas
         </Button>

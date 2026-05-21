@@ -41,12 +41,12 @@ const SchedulePageContent = () => {
             <ToggleGroupItem value="list"
               className="gap-2 my-px"
             >
-              <LayoutList className="size-4" />
-              <span className="text-sm">List</span>
+              <LayoutList className="size-4 cursor-pointer" />
+              <span className="text-sm cursor-pointer">List</span>
             </ToggleGroupItem>
-            <ToggleGroupItem value="calendar">
-              <CalendarIcon className="size-4" />
-              <span className="text-sm">Calendar</span>
+            <ToggleGroupItem value="calendar" className="">
+              <CalendarIcon className="size-4 cursor-pointer" />
+              <span className="text-sm cursor-pointer">Calendar</span>
             </ToggleGroupItem>
           </ToggleGroup>
           <Button onClick={() => setCreatePostModalOpen(true)}>

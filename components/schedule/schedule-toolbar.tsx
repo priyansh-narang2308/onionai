@@ -52,12 +52,11 @@ const ScheduleToolbar = ({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Status Filter */}
       {viewType === "calendar" && (
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="lg" className="h-8 gap-1">
+            <Button variant="ghost" size="lg" className="h-8 gap-1 cursor-pointer">
               <Copy className="h-3.5 w-3.5" />
               <span className="font-medium text-sm text-muted-foreground!">
                 {statusOptions.find((s) => s.id === selectedStatus)?.label || "All Posts"}
