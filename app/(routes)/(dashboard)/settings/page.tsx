@@ -68,6 +68,7 @@ const SettingsPage = () => {
                   </div>
                   <div className="mt-6">
                     <UserProfile
+                      routing="hash"
                       appearance={{
                         elements: {
                           rootBox: "w-full",

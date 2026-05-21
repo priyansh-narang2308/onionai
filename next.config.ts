@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ],    
   },
   allowedDevOrigins:[
-    "yolande-sistroid-jenee.ngrok-free.dev"
+    "magnisonant-scoreless-terrance.ngrok-free.dev"
   ]
 };
 

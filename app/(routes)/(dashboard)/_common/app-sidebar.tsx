@@ -83,12 +83,14 @@ const AppSidebar = () => {
   return (
     <>
       <Sidebar collapsible="icon">
-        <SidebarHeader className={cn("p-4", isCollapsed && "p-2")}>
-          <div className='flex items-center justify-between'>
+        <SidebarHeader className={cn("p-4 relative", isCollapsed && "p-2")}>
+          <div className='flex items-center justify-center md:justify-start'>
             <Logo hideName={isCollapsed} />
-            <SidebarTrigger className="hidden md:flex -mx-8 mb-0" />
           </div>
-          <Button className='mt-4 w-full'
+          <SidebarTrigger 
+            className="hidden md:flex absolute -right-3.5 top-5 z-50 rounded-full border border-border bg-background shadow-sm hover:bg-accent hover:shadow-md transition-all size-7 p-0 items-center justify-center [&>svg]:size-4 text-muted-foreground hover:text-foreground" 
+          />
+          <Button className='mt-4 w-full shadow-sm'
             size={isCollapsed ? "icon" : "lg"}
             onClick={() => setIsCreatePostOpen(true)}
           >

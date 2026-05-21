@@ -67,7 +67,7 @@ export default function LandingPage() {
                     asChild
                     className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all shadow-md px-7 h-11 text-base font-medium"
                   >
-                    <Link href="/sign-up">Get started for free</Link>
+                    <Link href="/sign-up">Get started</Link>
                   </Button>
                 </>
               ) : (
