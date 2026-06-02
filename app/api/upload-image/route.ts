@@ -14,7 +14,8 @@ export async function POST(request: Request) {
         }
         const insforge = getInsforgeUploadClient();
         const formData = await request.formData();
-        const file = formData.get("file") as File;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const file = (formData as any).get("file") as File;
 
         if (!(file instanceof File)) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });

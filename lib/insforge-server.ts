@@ -12,7 +12,7 @@ const TOKEN_REFRESH_MS = 50_000; // Clerk template tokens expire in 60s by defau
 
 let cachedClient: InsForgeClient | null = null;
 let cachedUserId: string | null = null;
-let refreshInterval: NodeJS.Timeout | null = null;
+let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
 async function refreshAuthToken(client: InsForgeClient, retries = 3): Promise<void> {
   try {

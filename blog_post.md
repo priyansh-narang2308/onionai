@@ -1,210 +1,202 @@
-# Peeling the Noise: How We Built Onion AI, the Developer-First Adaptive Social Workspace
+# How We Built a Cross-Platform Social Scheduler with Next.js 16, Expo SDK 55, and Neo4j
+
+We have been posting to Twitter, LinkedIn, and Instagram for about two years now. And honestly? The tooling around scheduling posts across multiple platforms is terrible.
+
+Buffer wants us to pay $60/month for features we do not need. Hootsuite has so many nested menus that we lose track of where we are. And every "AI-powered" alternative we tried just copies the same text verbatim to every platform, hashtags and all. That looks fine on Instagram. On LinkedIn, it looks like spam. On Twitter, you blow past the character limit and the post just gets truncated mid-sentence.
+
+So we decided to build our own. We called it Onion AI, because the idea is to peel away the unnecessary complexity that these tools pile on top of a fundamentally simple task: write something once, format it correctly for each platform, and schedule it.
+
+This post is a walkthrough of the technical decisions, the stack, the bugs that cost us hours, and what we would do differently. The full source code is on GitHub at [github.com/batmanven/onionai](https://github.com/batmanven/onionai) if you want to follow along.
 
 ---
 
-## Introduction: Why Social Scheduling is Broken
+## Choosing the Stack
 
-If you are a builder, designer, or creator in 2026, you know that keeping an active social presence is a double-edged sword. To share your work, you are forced to navigate the fragmented interfaces of multiple social networks: X (Twitter), LinkedIn, Instagram, and YouTube. 
+We wanted something that would compile fast, look good out of the box, and let us move quickly. Here is what we landed on:
 
-Most modern scheduling platforms (for example, Hootsuite and Buffer) fall into two traps:
-1. **The Legacy Enterprise Bloat**: Overwhelmed with multi-nested folders, complex permissions, and sluggish dashboards.
-2. **The Artificial Intelligence Slop Epidemic**: Blasting the exact same unoptimized, unformatted message to every platform. A post with hashtags scattered in the middle of a text block might work on Instagram, but it looks incredibly sloppy on X/Twitter and unprofessional on LinkedIn.
+**Next.js 16 with Turbopack** was the obvious choice for the web frontend. We had been using Next.js 14 at work and the difference in dev server startup time with Turbopack is night and day. Hot reloads happen in under 3 seconds. React Server Components also meant we could keep most of the page rendering on the server and ship less JavaScript to the client.
 
-We built Onion AI to solve this. The core metaphor is simple: peel back the layers of bloated user interfaces to focus on what matters most—speed, native formatting, and seamless scheduling. 
+**Tailwind CSS v4** was a risk. v4 is a complete rewrite — the config file is gone, everything lives in CSS now via `@theme` blocks. We spent a full afternoon figuring out how to get custom Google Fonts working with it (more on that later). But once it clicked, the DX was genuinely better. Being able to define design tokens directly in CSS and reference them as utilities felt right.
 
-In this article, we peel back the engineering layers of Onion AI, detailing our modern tech stack, architectural implementation, developer-first design patterns, and the real challenges we solved along the way.
+**Clerk** handles authentication. We needed OAuth flows for Twitter and LinkedIn anyway, and Clerk's middleware integration with Next.js meant we could protect API routes with two lines of code. The session tokens it generates are JWTs that we can pass straight through to our database layer.
 
----
-
-## The Tech Stack: High Performance meets Modern Aesthetics
-
-To build a social media engine that updates instantaneously and feels premium, we selected a state-of-the-art tech stack. We intentionally pushed the boundaries of modern frameworks rather than relying on legacy, safe templates.
-
-```
-+-------------------------------------------------------------+
-|                       ONION AI STACK                        |
-+-------------------+-------------------+---------------------+
-|      FRONTEND     |      BACKEND      │     SCHEDULING      |
-+-------------------+-------------------+---------------------+
-| Next.js 16 (Turbo)| Clerk Auth        │ Inngest Serverless  |
-| Tailwind CSS v4   │ React Query v5    │ Database Adapters   |
-| Lucide / Hugeicons│ API Proxy Routers │ Custom OAuth flows  |
-+-------------------+-------------------+---------------------+
-```
-
-### 1. Next.js 16 (Turbopack) and React 19
-We built Onion AI on Next.js 16 to leverage the speed of Turbopack. Using React Server Components (RSC) and React 19 hooks, we achieved incredibly low bundle sizes. Pages load instantly, and interactions in our unified editor feel entirely local.
-
-### 2. Tailwind CSS v4
-Onion AI is styled using the newly released Tailwind CSS v4. Tailwind v4 shifts configuration from a JS file to CSS `@import` variables, unlocking powerful compilation performance and direct access to native CSS variables. We took advantage of:
-- **OkLCH Color Palettes**: Tailored lime colors (`oklch(0.82 0.17 122)`) that remain incredibly vibrant and accessible across dark background systems.
-- **CSS-First Custom Animations**: Custom `@keyframes` representing drifting organic grids and pulsing glass mesh glowing halos.
-
-### 3. Identity and Security: Clerk
-Handling multi-channel management requires solid authentication boundaries. We leveraged Clerk to handle user registration, secure session tokens, and route protection, ensuring users' linked social credentials remain tightly locked.
-
-### 4. Background Queues: Inngest
-Social media posting requires asynchronous task execution. If an API is slow or temporarily rate-limited, we cannot block the user's browser. We integrated Inngest to orchestrate non-blocking event-driven queues, retrying failed dispatches and handling cron schedules for queue releases automatically.
+**Inngest** runs the actual post dispatch. When you hit "Schedule", the post does not get published synchronously. It gets enqueued as an Inngest event, which handles retries, rate limiting, and cron-based scheduling in the background. This was important because Twitter's API in particular has aggressive rate limits and we did not want failed publishes to block the UI.
 
 ---
 
-## Architecture and Core Implementation Details
+## The Composer: Write Once, Adapt Per Platform
 
-The heart of Onion AI is the Unified Composer. We designed it to respect the constraints and culture of each social network.
+The central feature is what we call the Unified Composer. You write your post once, pick which platforms you want to target, and the system reformats the content for each one.
 
-### The Unified Composer Pipeline
+This sounds simple but the formatting rules are surprisingly different:
 
-Rather than forcing the user to draft individual posts for every single platform, we developed a one-to-many compiler:
+- **Twitter/X** has a hard 280-character limit. You need to be concise. Hashtags go at the end, not inline.
+- **LinkedIn** prefers longer, paragraph-spaced content. Inline hashtags actually work here. The tone is more professional.
+- **Instagram** captions can be long but the first line needs to hook. All hashtags go in a block at the bottom.
 
-```
-                  +----------------------+
-                  |    Raw Idea Draft    |
-                  |   ("The Original")   |
-                  +----------+-----------+
-                             |
-                             v
-                +--------------------------+
-                |  Onion Adaptation Engine |
-                +----+---------+---------+-+
-                     |         |         |
-       +-------------+         |         +--------------+
-       v                       v                        v
-+--------------+        +--------------+         +--------------+
-|  X (Twitter) |        |   LinkedIn   |         |  Instagram   |
-|  280 chars,  |        | Spaced text, |         | Link in Bio, |
-| punchy hooks |        | B2B tags     |         | Aspect ratio |
-+--------------+        +--------------+         +--------------+
-```
-
-Here is an architectural breakdown of how our composer structures this adaptation programmatically:
+We wrote a platform adapter that takes the raw draft and transforms it per platform. Here is a condensed version:
 
 ```typescript
-// Type definition for platform adaptors
-interface PlatformDraft {
-  platform: 'TWITTER' | 'LINKEDIN' | 'INSTAGRAM';
-  content: string;
-  charLimit: number;
-  metadata: Record<string, any>;
-}
-
-export function adaptDraft(rawText: string, platform: string, tone: string): PlatformDraft {
-  let content = rawText;
-  
+export function adaptDraft(rawText: string, platform: string): PlatformDraft {
   switch(platform) {
     case 'TWITTER':
-      // Enforce hard limit and trim punchily
-      content = truncatePunchy(content, 280);
       return {
         platform: 'TWITTER',
-        content,
+        content: truncate(rawText, 280),
         charLimit: 280,
-        metadata: { hasThread: content.length > 280 }
       };
-      
     case 'LINKEDIN':
-      // Add professional paragraphs and B2B tags
-      content = formatProfessional(content) + "\n\n#socialmedia #automation";
       return {
         platform: 'LINKEDIN',
-        content,
+        content: addParagraphSpacing(rawText) + "\n\n#socialmedia #devtools",
         charLimit: 3000,
-        metadata: { spacing: "expanded" }
       };
-      
     case 'INSTAGRAM':
-      // Move tags to bio/footer, preserve visual spacing
-      content = content + "\n\n[Link in Bio] #codinglife #automation";
       return {
         platform: 'INSTAGRAM',
-        content,
+        content: rawText + "\n\n---\n" + extractHashtags(rawText),
         charLimit: 2200,
-        metadata: { visualLayout: "aspect_1.91" }
       };
-      
     default:
-      return { platform: 'TWITTER', content, charLimit: 280, metadata: {} };
+      return { platform: 'TWITTER', content: rawText, charLimit: 280 };
   }
 }
 ```
 
-### The Optimal Queue Dispatch
-When users enqueue posts, Onion AI does not simply post them immediately. Using Inngest background functions, our engine parses historical engagement data, computes the Optimal High-Traffic Window for the specific user's profiles, and schedules the exact publish event.
+The actual implementation has more logic around tone presets (you can toggle between "original", "professional", "casual" styles) and live previews that render mock Twitter cards and LinkedIn article blocks so you can see exactly what the output looks like before scheduling.
 
 ---
 
-## The Core Features Inside Onion AI
+## Bugs That Cost Us Real Time
 
-Onion AI provides a clean workflow through three fundamental features:
+These are the three problems that genuinely slowed us down during development. We are including them because we could not find good answers online for any of them, and maybe this saves someone a few hours.
 
-### 1. The Adaptive Unified Composer
-Standard social schedulers require writing multiple separate copies for each network. Onion AI reverses this: write your core message once in our editor, and the platform adaptation layer instantly generates:
-- A punchy 280-character maximum post optimized for X (Twitter).
-- A spaced, paragraphs-first article draft suitable for LinkedIn.
-- A visual-first caption optimized with structured tags for Instagram.
+### Clerk's Settings Route Would Not Stop Throwing Hydration Errors
 
-### 2. Event-Driven Publishing Queues
-Instead of using synchronous API requests that block your interface, Onion AI processes every dispatch through an asynchronous queue. Powered by Inngest, this handles rate limits, API downtimes, and token refreshes without missing a post.
+We embedded Clerk's `<UserProfile>` component inside a `/settings` page. Every time the page loaded, we got this error in the console:
 
-### 3. Secured Profile Connection Gateways
-Connecting platforms is simple and secure. We integrated raw OAuth gateways directly into X, LinkedIn, and Instagram. Credentials are encrypted using enterprise AES-256 standard and linked securely to the verified Clerk session.
+> Clerk: The UserProfile component is not configured correctly. The settings route is not a catch-all route.
 
----
+The problem is that Clerk's embedded components expect to manage their own sub-routes internally (for things like switching between profile, security, and connected accounts tabs). But our Next.js route was a static page, not a catch-all `[...slug]` route.
 
-## Challenges Faced and How We Solved Them
+We did not want to restructure our routing just for Clerk. The fix that worked was switching to hash-based routing:
 
-No project is built without hurdles. During development, we encountered three major architectural and design challenges that tested our engineering capabilities.
-
-### Challenge 1: Clerk Catch-All Middleware Route Collisions
-When setting up user settings, Clerk recommended standard route protection. However, because our `/settings` route loaded custom child blocks dynamically, Clerk's component threw hydration errors:
-"Clerk: The UserProfile component is not configured correctly. The settings route is not a catch-all route."
-
-**The Solution**:  
-We configured the component to use hash-based routing dynamically in Next.js 16. By changing the component to use a hash routing prop (`routing="hash"`) and updating the Clerk route matcher in `middleware.ts` to allow hash boundaries, the hydration conflict was completely resolved.
-
-### Challenge 2: Next.js 16 Textarea Focus and Overlapping Padding
-In our Content Composer workspace, we found that disabled editor textareas had standard styling overrides that conflicted with our premium look. In dark mode, text blocks would appear with high-opacity white boxes that blocked visibility and stuck to adjacent element borders.
-
-**The Solution**:  
-We created a custom utility in `globals.css` that targets CSS-disabled states. By applying transparent backgrounds to disabled states (`disabled:bg-transparent!`) and customizing the exact margins of our Radix UI layout blocks, we created a fluid editor state that remains beautifully readable even when locked:
-```css
-/* Custom transparent lock overrides */
-textarea:disabled {
-  background-color: transparent !important;
-  opacity: 0.8;
-}
+```tsx
+<UserProfile routing="hash" path="/settings" />
 ```
 
-### Challenge 3: Tailwind v4 Dynamic Font Variable Merging
-Tailwind CSS v4 removes the classic `tailwind.config.js` layer in favor of importing theme inline values. Injecting a Google Font dynamically via Server Component wrappers and exposing it to child client containers proved difficult without breaking Turbopack build pipelines.
+That tells Clerk to use URL hash fragments (`/settings#security`, `/settings#profile`) instead of real path segments. No more hydration mismatch, no route restructuring needed.
 
-**The Solution**:  
-We initialized the Google font Syne directly inside `app/layout.tsx` using Next.js `font/google`, exposed the variable `--font-syne`, and linked it directly in `globals.css` within the `@theme inline` block:
+### Tailwind v4 Broke Our Custom Font Setup
+
+In Tailwind v3, you would add custom fonts in `tailwind.config.js` under `theme.extend.fontFamily`. That file does not exist anymore in v4.
+
+We use the Syne typeface from Google Fonts. We load it in `app/layout.tsx` using `next/font/google`, which gives us a CSS variable `--font-syne`. But Tailwind v4 did not know about it.
+
+The solution is to register it in your CSS file inside a `@theme` block:
+
 ```css
-@theme inline {
+@theme {
   --font-display: var(--font-syne);
 }
 ```
-This allowed us to utilize the class `font-display` seamlessly across all components, ensuring stunning typography loads instantly.
+
+Now `font-display` works as a utility class anywhere in the app. This is documented in the Tailwind v4 docs but it took us a while to find it because we kept searching for the old config file approach.
+
+### Disabled Textareas Had an Ugly White Background
+
+When a post is being dispatched, we temporarily disable the composer textarea to prevent edits. The problem is that browsers apply their own styling to disabled inputs, and on our dark-themed glassmorphism panels, disabled textareas got a solid white background that looked awful.
+
+The fix is simple but it needs `!important` because browser UA stylesheets have high specificity on disabled states:
+
+```css
+textarea:disabled {
+  background-color: transparent !important;
+  opacity: 0.75;
+}
+```
+
+We added this to `globals.css` and it solved the issue across every textarea in the app.
 
 ---
 
-## The Results: Validated Performance
+## Building the Mobile App with Expo SDK 55
 
-To ensure our application is ready for production, we put our build pipeline to the test:
-- **Compile Time**: Our integration of Next.js 16 and Turbopack compiles page assets in just 2.9 seconds.
-- **Type Checking**: Clean TypeScript type checking completes in 3.4 seconds across every API and UI view.
-- **Visual Performance**: Running Chrome DevTools audits shows perfect scores in structural SEO, accessibility, and Largest Contentful Paint (LCP) timings, thanks to lightweight semantic HTML structures.
+After the web app was working, we wanted the same functionality on our phones. We used Expo SDK 55 with React Native and Expo Router to build a companion mobile app that shares the same backend.
+
+The core constraint was that the mobile app had to hit the exact same API endpoints as the web app. Both use Clerk for auth — the web app uses `@clerk/nextjs` and the mobile app uses `@clerk/clerk-expo`. Since both produce the same JWT format, the backend does not care which client is making the request. We wrote a `fetchWithAuth` utility that attaches the Bearer token to every request:
+
+```typescript
+export async function fetchWithAuth(endpoint: string, options: RequestInit, getToken: Function) {
+  const token = await getToken({ template: "insforge" });
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!response.ok) throw new Error(`API Error: ${response.status}`);
+  return response.json();
+}
+```
+
+During development, the mobile app talks to the Next.js backend through an ngrok tunnel. This introduced a specific macOS bug that took us an embarrassingly long time to figure out: ngrok would randomly return 502 errors. The Next.js server was clearly running. Curling `http://127.0.0.1:3000` worked fine. But ngrok kept failing.
+
+The issue was IPv6. When you run `ngrok http 3000`, ngrok resolves `localhost` and on macOS, that can resolve to `[::1]` (the IPv6 loopback) instead of `127.0.0.1`. If the Next.js dev server is only listening on IPv4, the connection gets refused and ngrok returns a 502.
+
+The fix: `ngrok http 127.0.0.1:3000` instead of `ngrok http 3000`. Explicit IPv4 address, no ambiguity.
+
+We also replaced the default Expo Router tab bar with a custom floating navigation dock. The default tab bar looks generic and we wanted something that matched the web app's design language — a floating pill bar with animated active state indicators. React Native's `LayoutAnimation` API handles the expand/collapse transitions when switching tabs. One thing to watch out for: `StyleSheet.create` in React Native is stricter about types than CSS. `fontWeight: "850"` compiles fine in CSS but React Native only accepts `"100"` through `"900"` in increments of 100. Same with `ActivityIndicator` — there is no `size="medium"`, only `"small"` or `"large"`.
 
 ---
 
-## The Road Ahead
+## Adding Neo4j for Content Relationship Tracking
 
-Onion AI is just beginning. By peeling back the layers of bloated social software, we've built a faster, more beautiful way for creators to maintain their voices. In our next cycles, we plan to implement:
-- **Bluesky and Threads Integrations**: Official developer adapters as soon as public write endpoints stabilize.
-- **Interactive Visual Composition**: Drag-and-drop graphic modules directly within the adaptive editor.
-- **Deep Analytics**: Non-intrusive tracking of audience retention ratios mapped directly to queue structures.
+The relational database (a PostgreSQL-compatible store called InsForge) handles the transactional data: user accounts, posts, channels, scheduling metadata. But we realized that the interesting queries we wanted to run were all graph-shaped.
 
-If you are tired of legacy social media tools, it’s time to start fresh. Try Onion AI, focus on your content, and peel the noise.
+For example: "Show me every post that was derived from this idea, across all platforms, and how each one performed." In SQL, that is a multi-join query across ideas, posts, channels, and platform types. In a graph database, it is a single traversal.
 
-*Check out our repository, deploy your own instance, and let us know what platform adaptations you build next!*  
-*Link to Project: [Onion AI Workspace](http://localhost:3000)*
+We added Neo4j as a secondary data layer. The data model looks like this:
+
+- **Nodes**: `Idea`, `Post`, `Channel`, `PlatformType`
+- **Edges**: `INSPIRED` (Idea → Post), `PUBLISHED_TO` (Post → Channel), `BELONGS_TO` (Channel → PlatformType)
+
+Querying this in Cypher is clean:
+
+```cypher
+MATCH (i:Idea {id: $ideaId})-[:INSPIRED]->(p:Post)-[:PUBLISHED_TO]->(c:Channel)
+RETURN p.content, p.scheduled_at, c.handle
+ORDER BY p.scheduled_at DESC
+```
+
+The tricky part was keeping Neo4j in sync with the primary PostgreSQL store. We did not want to dual-write from the API handlers because that couples the two systems and creates consistency issues if one write fails. Instead, we used Inngest events: every time a post or idea is created or updated in the primary store, the API handler emits an event, and an Inngest function picks it up and upserts the corresponding node and relationships in Neo4j. It is eventually consistent, but for analytics queries that is perfectly fine.
+
+Other Neo4j-specific things we ran into:
+- **Cold starts are slow.** Neo4j runs on the JVM and the first query after a fresh start takes noticeably longer. We keep a persistent Docker container running locally instead of starting it fresh each session.
+- **There are no migration files.** Unlike SQL databases where you write migration scripts, Neo4j is schema-optional. We wrote a boot script that runs on application startup to create uniqueness constraints and indexes on properties we query frequently.
+
+---
+
+## What We Would Do Differently
+
+If we started over, we would skip building the custom OAuth flows from scratch. We implemented raw OAuth2 authorization code flows for Twitter and LinkedIn, handling token exchange, refresh logic, and encrypted storage manually. It works, but libraries like NextAuth or Clerk's own OAuth connections would have saved time.
+
+We would also set up the Neo4j sync pipeline from the beginning instead of adding it retroactively. Retrofitting a secondary data store into an existing API layer always creates edge cases around data that was created before the sync existed.
+
+---
+
+## Try It Yourself
+
+The full codebase is open source:
+
+- **Repository**: [github.com/batmanven/onionai](https://github.com/batmanven/onionai)
+- **Quick start**:
+  ```bash
+  git clone https://github.com/batmanven/onionai.git
+  cd onionai
+  npm install
+  npm run dev
+  ```
+
+If you have questions about any of the implementation details, open an issue on the repo or leave a comment below. We are happy to dig into specifics.
