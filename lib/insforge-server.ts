@@ -1,12 +1,12 @@
-import { auth } from '@clerk/nextjs/server';
-import { createClient, type InsForgeClient } from '@insforge/sdk';
+import { auth } from "@clerk/nextjs/server";
+import { createClient, type InsForgeClient } from "@insforge/sdk";
 
-const BASE_URL = process.env.NEXT_PUBLIC_INSFORGE_BASE_URL
-const ANON_KEY = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY
-const PROJECT_API_KEY = process.env.INSFORGE_PROJECT_API_KEY
+const BASE_URL = process.env.NEXT_PUBLIC_INSFORGE_BASE_URL;
+const ANON_KEY = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
+const PROJECT_API_KEY = process.env.INSFORGE_PROJECT_API_KEY;
 const TEMPLATE = process.env.CLERK_INSFORGE_TEMPLATE;
 
-const SERVER_TOKEN_TEMPLATE = TEMPLATE || 'insforge';
+const SERVER_TOKEN_TEMPLATE = TEMPLATE || "insforge";
 
 const TOKEN_REFRESH_MS = 50_000; // Clerk template tokens expire in 60s by default
 
@@ -14,21 +14,21 @@ let cachedClient: InsForgeClient | null = null;
 let cachedUserId: string | null = null;
 let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
-async function refreshAuthToken(client: InsForgeClient, retries = 3): Promise<void> {
+async function refreshAuthToken(client: InsForgeClient): Promise<void> {
   try {
     const session = await auth();
     const token = await session?.getToken({ template: SERVER_TOKEN_TEMPLATE });
     if (token) {
       client.getHttpClient().setAuthToken(token);
     } else {
-      throw new Error('No token received from Clerk');
+      throw new Error("No token received from Clerk");
     }
   } catch (err) {
     // if (retries > 0) {
     //   console.log(`Retrying token refresh... (${retries} retries left)`);
     //   setTimeout(() => refreshAuthToken(client, retries - 1), 1000);
     // }else {
-    console.error('Failed to refresh Clerk token for InsForge client', err);
+    console.error("Failed to refresh Clerk token for InsForge client", err);
     client.getHttpClient().setAuthToken(null);
   }
 }
@@ -67,12 +67,19 @@ export async function getInsforgeServerClient(): Promise<{ insforge: InsForgeCli
 }
 */
 
-export async function getInsforgeServerClient(): Promise<{ insforge: InsForgeClient; userId: string | null }> {
+export async function getInsforgeServerClient(): Promise<{
+  insforge: InsForgeClient;
+  userId: string | null;
+}> {
   if (!BASE_URL) {
-    throw new Error('Missing NEXT_PUBLIC_INSFORGE_BASE_URL or INSFORGE_BASE_URL environment variable');
+    throw new Error(
+      "Missing NEXT_PUBLIC_INSFORGE_BASE_URL or INSFORGE_BASE_URL environment variable",
+    );
   }
   if (!ANON_KEY) {
-    throw new Error('Missing NEXT_PUBLIC_INSFORGE_ANON_KEY or INSFORGE_ANON_KEY environment variable');
+    throw new Error(
+      "Missing NEXT_PUBLIC_INSFORGE_ANON_KEY or INSFORGE_ANON_KEY environment variable",
+    );
   }
 
   // Get current user from Clerk
@@ -114,13 +121,19 @@ export async function getInsforgeServerClient(): Promise<{ insforge: InsForgeCli
 export function getInsforgeAdminClient(): InsForgeClient {
   // Validate environment variables
   if (!BASE_URL) {
-    throw new Error('Missing NEXT_PUBLIC_INSFORGE_BASE_URL or INSFORGE_BASE_URL environment variable');
+    throw new Error(
+      "Missing NEXT_PUBLIC_INSFORGE_BASE_URL or INSFORGE_BASE_URL environment variable",
+    );
   }
   if (!ANON_KEY) {
-    throw new Error('Missing NEXT_PUBLIC_INSFORGE_ANON_KEY or INSFORGE_ANON_KEY environment variable');
+    throw new Error(
+      "Missing NEXT_PUBLIC_INSFORGE_ANON_KEY or INSFORGE_ANON_KEY environment variable",
+    );
   }
   if (!PROJECT_API_KEY) {
-    throw new Error('Missing INSFORGE_PROJECT_API_KEY or INSFORGE_API_KEY environment variable');
+    throw new Error(
+      "Missing INSFORGE_PROJECT_API_KEY or INSFORGE_API_KEY environment variable",
+    );
   }
 
   return createClient({
