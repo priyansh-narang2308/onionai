@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { View, Text, TouchableOpacity, ScrollView } from "react-native"
-import { ChevronDown, CalendarDays, List, Filter, SlidersHorizontal } from "lucide-react-native"
+import { CalendarDays, List, Filter } from "lucide-react-native"
 import { CHANNEL_PLATFORMS } from "../../constants/channels"
 import { PostStatus } from "../../types/post.type"
 

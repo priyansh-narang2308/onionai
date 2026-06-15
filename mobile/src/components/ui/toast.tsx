@@ -48,8 +48,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ToastItem({ item, onDismiss, index }: { item: ToastItem; onDismiss: (id: string) => void; index: number }) {
-  const opacity = useRef(new Animated.Value(0)).current
-  const translateY = useRef(new Animated.Value(-20)).current
+  const [opacity] = useState(() => new Animated.Value(0))
+  const [translateY] = useState(() => new Animated.Value(-20))
 
   React.useEffect(() => {
     Animated.parallel([

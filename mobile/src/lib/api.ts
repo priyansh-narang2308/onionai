@@ -1,5 +1,3 @@
-import { Platform } from "react-native"
-
 const DEV_API_URL = "https://magnisonant-scoreless-terrance.ngrok-free.dev"
 const PROD_API_URL = "https://onionai.vercel.app"
 
@@ -36,12 +34,14 @@ export async function fetchWithAuth(
 
   if (!response.ok) {
     const errorText = await response.text()
-    let errorJson: any
+    let errorJson: Record<string, unknown> | null = null
     try {
-      errorJson = JSON.parse(errorText)
-    } catch (_) {}
+      errorJson = JSON.parse(errorText) as Record<string, unknown>
+    } catch {
+      // Ignored
+    }
 
-    const message = errorJson?.error || errorJson?.message || `API Error: ${response.status}`
+    const message = (errorJson?.error as string) || (errorJson?.message as string) || `API Error: ${response.status}`
     throw new Error(message)
   }
 

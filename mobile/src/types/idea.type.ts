@@ -16,6 +16,7 @@ export type IdeaType = {
 export type Idea = {
   id: string
   content: string
+  title?: string
   group: string
   created_at: string
   tags?: string[]
