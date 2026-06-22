@@ -26,6 +26,13 @@ export async function DELETE(
             return NextResponse.json({ error: "Failed to delete idea" }, { status: 500 });
         }
 
+        // Trigger Neo4j graph cleanup
+        const { inngest } = await import("@/inngest/client");
+        await inngest.send({
+            name: "idea/delete.requested",
+            data: { ideaId: id }
+        });
+
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error("Error deleting idea:", error);

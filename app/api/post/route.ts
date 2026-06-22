@@ -87,14 +87,34 @@ export async function POST(request: NextRequest) {
         }
 
         const { insforge } = await getInsforgeServerClient()
-        const {
-            posts,
-            scheduledAt,
-            status
-        } = await request.json()
+        const requestBody = await request.json()
+        let posts = requestBody.posts
+        let scheduledAt = requestBody.scheduledAt || requestBody.scheduled_at
+        let status = requestBody.status
+        const ideaId = requestBody.ideaId
 
-        if (status !== undefined && status !== POST_STATUS.DRAFT) {
-            return NextResponse.json({ error: "Only draft status is allowed" }, { status: 400 })
+        // Support mobile app payload format where channels are string types
+        if (!posts && requestBody.channels && Array.isArray(requestBody.channels)) {
+            const { data: typeData } = await insforge.database
+                .from("channel_types")
+                .select("id, type")
+                .in("type", requestBody.channels)
+
+            const typeToIdMap = new Map(typeData?.map((t) => [t.type, t.id]) || [])
+
+            posts = requestBody.channels.map((chType: string) => {
+                const typeId = typeToIdMap.get(chType)
+                return {
+                    channelTypeId: typeId,
+                    content: requestBody.content,
+                    images: requestBody.images || []
+                }
+            }).filter((p: any) => !!p.channelTypeId)
+        }
+
+        const allowedStatuses = [POST_STATUS.DRAFT, POST_STATUS.QUEUE, "queue", "draft", "published"]
+        if (status !== undefined && !allowedStatuses.includes(status)) {
+            return NextResponse.json({ error: "Invalid status parameter" }, { status: 400 })
         }
 
         if (!Array.isArray(posts) || posts.length === 0) {
@@ -181,6 +201,22 @@ export async function POST(request: NextRequest) {
         if (error) {
             console.log(error, "error")
             return NextResponse.json({ error: "Failed to create posts" }, { status: 500 })
+        }
+
+        // Trigger Neo4j background graph synchronization
+        try {
+            const { inngest } = await import("@/inngest/client")
+            for (const post of (data || [])) {
+                await inngest.send({
+                    name: "post/sync.requested",
+                    data: {
+                        postId: post.id,
+                        ideaId: ideaId || null,
+                    }
+                })
+            }
+        } catch (syncErr) {
+            console.error("Failed to enqueue Inngest sync for posts:", syncErr)
         }
 
         return NextResponse.json({ posts: data }, { status: 201 })

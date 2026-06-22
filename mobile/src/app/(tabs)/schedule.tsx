@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react"
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity,
-  TextInput, Modal, ActivityIndicator, Platform,
+  TextInput, Modal, ActivityIndicator, Platform, Alert,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useAuth } from "@clerk/clerk-expo"
@@ -62,6 +62,68 @@ export default function ScheduleTab() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTime, setSelectedTime] = useState("")
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(null)
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null)
+  const [translating, setTranslating] = useState(false)
+
+  const { data: ideasData } = useQuery({
+    queryKey: ["ideas"],
+    queryFn: () => fetchWithAuth("/api/idea", { method: "GET" }, getToken),
+  })
+  const ideas = (ideasData?.groups || []).flatMap((g: any) => g.ideas || [])
+
+  const deletePostMutation = useMutation({
+    mutationFn: (postId: string) =>
+      fetchWithAuth(`/api/post/${postId}`, { method: "DELETE" }, getToken),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] })
+      queryClient.invalidateQueries({ queryKey: ["post-totals"] })
+      setIsEditOpen(false)
+      setEditingPost(null)
+      toast("Post deleted successfully")
+    },
+    onError: (err: any) => {
+      toast(err.message || "Failed to delete post", "error")
+    },
+  })
+
+  const handleDeletePost = (postId: string) => {
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deletePostMutation.mutate(postId) }
+      ]
+    )
+  }
+
+  const handleTranslate = async (langCode: string, langName: string) => {
+    const text = isComposerOpen ? composerText : editingPost?.content
+    if (!text?.trim()) {
+      toast("Please enter text to translate", "error")
+      return
+    }
+
+    setTranslating(true)
+    try {
+      const res = await fetchWithAuth("/api/sarvam/translate", {
+        method: "POST",
+        body: JSON.stringify({ text, targetLanguage: langCode }),
+      }, getToken)
+      if (res && res.translatedText) {
+        if (isComposerOpen) {
+          setComposerText(res.translatedText)
+        } else if (editingPost) {
+          setEditingPost(prev => prev ? { ...prev, content: res.translatedText } : null)
+        }
+        toast(`Translated to ${langName}`)
+      }
+    } catch (err: any) {
+      toast(err.message || "Translation failed", "error")
+    } finally {
+      setTranslating(false)
+    }
+  }
 
   const { data: postsData, isLoading, refetch, error } = useQuery({
     queryKey: ["posts", statusTab],
@@ -84,7 +146,7 @@ export default function ScheduleTab() {
   const totals: Record<string, number> = totalsData || {}
 
   const createPostMutation = useMutation({
-    mutationFn: (payload: { posts: { channelTypeId: string; content: string }[]; scheduledAt: string }) =>
+    mutationFn: (payload: { posts: { channelTypeId: string; content: string }[]; scheduledAt: string; ideaId?: string | null }) =>
       fetchWithAuth("/api/post", { method: "POST", body: JSON.stringify(payload) }, getToken),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["posts"] })
@@ -137,6 +199,7 @@ export default function ScheduleTab() {
     setSelectedChannelTypeId(activeChannels[0].id)
     setSelectedDate(new Date())
     setSelectedTime("")
+    setSelectedIdeaId(null)
     setIsComposerOpen(true)
   }
 
@@ -155,6 +218,7 @@ export default function ScheduleTab() {
     createPostMutation.mutate({
       posts: [{ channelTypeId: selectedChannelTypeId, content: composerText.trim() }],
       scheduledAt: scheduleAt.toISOString(),
+      ideaId: selectedIdeaId,
     })
   }
 
@@ -357,35 +421,89 @@ export default function ScheduleTab() {
                 <X color="#71717a" size={20} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.modalFormScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Channel</Text>
-              <View style={styles.channelRowSelector}>
-                {activeChannels.map((chan: any) => (
-                  <TouchableOpacity
-                    key={chan.id}
-                    onPress={() => setSelectedChannelTypeId(chan.id)}
-                    style={[styles.channelSelectBadge, selectedChannelTypeId === chan.id && styles.channelSelectBadgeActive]}
-                  >
-                    <View style={[styles.avatarDot, { backgroundColor: chan.color || "#84cc16" }]} />
-                    <Text style={styles.channelSelectText}>{chan.name}</Text>
-                  </TouchableOpacity>
-                ))}
+          <ScrollView style={styles.modalFormScroll} showsVerticalScrollIndicator={false}>
+            <Text style={styles.label}>Channel</Text>
+            <View style={styles.channelRowSelector}>
+              {activeChannels.map((chan: any) => (
+                <TouchableOpacity
+                  key={chan.id}
+                  onPress={() => setSelectedChannelTypeId(chan.id)}
+                  style={[styles.channelSelectBadge, selectedChannelTypeId === chan.id && styles.channelSelectBadgeActive]}
+                >
+                  <View style={[styles.avatarDot, { backgroundColor: chan.color || "#84cc16" }]} />
+                  <Text style={styles.channelSelectText}>{chan.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {ideas.length > 0 && (
+              <>
+                <Text style={styles.label}>Link to Idea</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+                  {ideas.map((idea: any) => (
+                    <TouchableOpacity
+                      key={idea.id}
+                      onPress={() => {
+                        setSelectedIdeaId(idea.id)
+                        setComposerText((idea.title + "\n\n" + (idea.description || "")).trim())
+                        toast("Idea loaded!")
+                      }}
+                      style={{
+                        paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
+                        backgroundColor: selectedIdeaId === idea.id ? "#84cc16" : "#f4f4f5",
+                        borderWidth: 1, borderColor: selectedIdeaId === idea.id ? "#84cc16" : "#e4e4e7"
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: "700", color: selectedIdeaId === idea.id ? "#ffffff" : "#3f3f46" }}>
+                        {idea.title}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
+            <Text style={styles.label}>Content</Text>
+            <View style={styles.inputAreaCard}>
+              <TextInput
+                style={styles.composerInput}
+                placeholder="Write your post..."
+                placeholderTextColor="#cbd5e1"
+                value={composerText}
+                onChangeText={setComposerText}
+                multiline
+                numberOfLines={4}
+              />
+              <View style={styles.inputMeta}>
+                <Text style={styles.charCountText}>{composerText.length} chars</Text>
               </View>
-              <Text style={styles.label}>Content</Text>
-              <View style={styles.inputAreaCard}>
-                <TextInput
-                  style={styles.composerInput}
-                  placeholder="Write your post..."
-                  placeholderTextColor="#cbd5e1"
-                  value={composerText}
-                  onChangeText={setComposerText}
-                  multiline
-                  numberOfLines={4}
-                />
-                <View style={styles.inputMeta}>
-                  <Text style={styles.charCountText}>{composerText.length} chars</Text>
-                </View>
-              </View>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 12 }}>
+              {translating ? (
+                <ActivityIndicator size="small" color="#84cc16" style={{ marginHorizontal: 10 }} />
+              ) : (
+                <>
+                  <Text style={{ fontSize: 11, fontWeight: "600", color: "#71717a", alignSelf: "center", marginRight: 6 }}>Translate:</Text>
+                  {[
+                    { code: "hi-IN", name: "Hindi" },
+                    { code: "ta-IN", name: "Tamil" },
+                    { code: "te-IN", name: "Telugu" },
+                    { code: "kn-IN", name: "Kannada" },
+                    { code: "ml-IN", name: "Malayalam" },
+                    { code: "bn-IN", name: "Bengali" },
+                  ].map(lang => (
+                    <TouchableOpacity
+                      key={lang.code}
+                      onPress={() => handleTranslate(lang.code, lang.name)}
+                      style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "#f4f4f5", borderWidth: 1, borderColor: "#e4e4e7" }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: "700", color: "#3f3f46" }}>{lang.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+            </ScrollView>
               <Text style={styles.label}>Schedule</Text>
               <DatePicker
                 date={selectedDate}
@@ -427,6 +545,33 @@ export default function ScheduleTab() {
                   numberOfLines={4}
                 />
               </View>
+
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: "row", gap: 8, marginTop: 8, marginBottom: 12 }}>
+                {translating ? (
+                  <ActivityIndicator size="small" color="#84cc16" style={{ marginHorizontal: 10 }} />
+                ) : (
+                  <>
+                    <Text style={{ fontSize: 11, fontWeight: "600", color: "#71717a", alignSelf: "center", marginRight: 6 }}>Translate:</Text>
+                    {[
+                      { code: "hi-IN", name: "Hindi" },
+                      { code: "ta-IN", name: "Tamil" },
+                      { code: "te-IN", name: "Telugu" },
+                      { code: "kn-IN", name: "Kannada" },
+                      { code: "ml-IN", name: "Malayalam" },
+                      { code: "bn-IN", name: "Bengali" },
+                    ].map(lang => (
+                      <TouchableOpacity
+                        key={lang.code}
+                        onPress={() => handleTranslate(lang.code, lang.name)}
+                        style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "#f4f4f5", borderWidth: 1, borderColor: "#e4e4e7" }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: "700", color: "#3f3f46" }}>{lang.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                )}
+              </ScrollView>
+
               {editingPost?.status === "queue" && (
                 <TouchableOpacity onPress={() => handlePublishNow(editingPost.id)} style={styles.publishNowLargeBtn}>
                   <Send color="#ffffff" size={16} />
@@ -434,8 +579,17 @@ export default function ScheduleTab() {
                 </TouchableOpacity>
               )}
             </ScrollView>
-            <View style={styles.modalFooter}>
-              <TouchableOpacity onPress={handleUpdatePost} style={styles.scheduleActionBtn} disabled={updatePostMutation.isPending}>
+            <View style={[styles.modalFooter, { flexDirection: "row", justifyContent: "space-between" }]}>
+              <TouchableOpacity
+                onPress={() => editingPost && handleDeletePost(editingPost.id)}
+                disabled={deletePostMutation.isPending}
+                style={[styles.scheduleActionBtn, { backgroundColor: "#fef2f2", borderColor: "#fca5a5", marginRight: 8, flex: 0.35 }]}
+              >
+                {deletePostMutation.isPending ? <ActivityIndicator color="#ef4444" size="small" /> : (
+                  <Text style={[styles.scheduleActionBtnText, { color: "#ef4444" }]}>Delete</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleUpdatePost} style={[styles.scheduleActionBtn, { flex: 0.65 }]} disabled={updatePostMutation.isPending}>
                 {updatePostMutation.isPending ? <ActivityIndicator color="#ffffff" size="small" /> : (
                   <><CheckCircle color="#ffffff" size={16} /><Text style={styles.scheduleActionBtnText}>Save Changes</Text></>
                 )}

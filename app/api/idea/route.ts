@@ -105,6 +105,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
+        // Trigger Neo4j graph sync
+        const { inngest } = await import("@/inngest/client");
+        await inngest.send({
+            name: "idea/sync.requested",
+            data: { ideaId: data.id }
+        });
+
         return NextResponse.json({ data });
 
     } catch (error) {
