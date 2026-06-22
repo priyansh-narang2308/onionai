@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import neo4j, { Driver } from "neo4j-driver";
 
 let driver: Driver | null = null;
@@ -24,7 +25,10 @@ export function getNeo4jDriver(): Driver | null {
   return driver;
 }
 
-export async function runCypher(query: string, params: Record<string, any> = {}) {
+export async function runCypher(
+  query: string,
+  params: Record<string, any> = {},
+) {
   const drv = getNeo4jDriver();
   if (!drv) {
     return null;
@@ -173,7 +177,10 @@ export type GraphLink = {
 /**
  * Returns complete graph structure for visual rendering, falling back to database query if Neo4j is offline
  */
-export async function getGraphData(userId: string, insforgeClient?: any): Promise<{ nodes: GraphNode[]; links: GraphLink[] }> {
+export async function getGraphData(
+  userId: string,
+  insforgeClient?: any,
+): Promise<{ nodes: GraphNode[]; links: GraphLink[] }> {
   const drv = getNeo4jDriver();
   if (drv) {
     try {
@@ -208,7 +215,13 @@ export async function getGraphData(userId: string, insforgeClient?: any): Promis
             if (id) {
               nodesMap.set(id, {
                 id,
-                label: properties.title || properties.name || properties.type || (properties.content ? properties.content.substring(0, 20) + "..." : "Post"),
+                label:
+                  properties.title ||
+                  properties.name ||
+                  properties.type ||
+                  (properties.content
+                    ? properties.content.substring(0, 20) + "..."
+                    : "Post"),
                 type,
                 color: properties.color,
                 status: properties.status,
@@ -225,7 +238,13 @@ export async function getGraphData(userId: string, insforgeClient?: any): Promis
             if (id) {
               nodesMap.set(id, {
                 id,
-                label: properties.title || properties.name || properties.type || (properties.content ? properties.content.substring(0, 20) + "..." : "Post"),
+                label:
+                  properties.title ||
+                  properties.name ||
+                  properties.type ||
+                  (properties.content
+                    ? properties.content.substring(0, 20) + "..."
+                    : "Post"),
                 type,
                 color: properties.color,
                 status: properties.status,
@@ -251,7 +270,10 @@ export async function getGraphData(userId: string, insforgeClient?: any): Promis
         };
       }
     } catch (err) {
-      console.warn("Neo4j getGraphData failed, falling back to simulated relational graph:", err);
+      console.warn(
+        "Neo4j getGraphData failed, falling back to simulated relational graph:",
+        err,
+      );
     }
   }
 
@@ -322,7 +344,10 @@ export async function getGraphData(userId: string, insforgeClient?: any): Promis
       .eq("user_id", userId);
 
     (posts || []).forEach((post: any) => {
-      const truncatedLabel = post.content.length > 25 ? post.content.substring(0, 22) + "..." : post.content;
+      const truncatedLabel =
+        post.content.length > 25
+          ? post.content.substring(0, 22) + "..."
+          : post.content;
       nodes.push({
         id: post.id,
         label: truncatedLabel || "Scheduled Post",

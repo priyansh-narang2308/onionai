@@ -1,4 +1,8 @@
-export async function translateToIndianLanguage(text: string, targetLang: string): Promise<string> {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export async function translateToIndianLanguage(
+  text: string,
+  targetLang: string,
+): Promise<string> {
   const apiKey = process.env.SARVAM_API_KEY;
   if (!apiKey) {
     throw new Error("Missing SARVAM_API_KEY configuration");
@@ -21,7 +25,9 @@ export async function translateToIndianLanguage(text: string, targetLang: string
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Sarvam Translate API returned status ${response.status}: ${errorText}`);
+    throw new Error(
+      `Sarvam Translate API returned status ${response.status}: ${errorText}`,
+    );
   }
 
   const data = await response.json();
@@ -38,7 +44,7 @@ export async function sarvamChatCompletion(messages: any[]): Promise<string> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: "sarvam-2b-v0.5", // Fast, lightweight multilingual model or sarvam-30b
@@ -49,7 +55,9 @@ export async function sarvamChatCompletion(messages: any[]): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Sarvam completions API returned status ${response.status}: ${errorText}`);
+    throw new Error(
+      `Sarvam completions API returned status ${response.status}: ${errorText}`,
+    );
   }
 
   const data = await response.json();
