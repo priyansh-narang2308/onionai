@@ -13,10 +13,13 @@ import { PlusSignIcon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 
 function ChannelTabContent() {
     const searchParams = useSearchParams()
     const queryClient = useQueryClient()
+    const [isMockMode, setIsMockMode] = useState(true)
 
     const { data: channelsData, isPending } = useQuery({
         queryKey: ["channels"],
@@ -48,7 +51,7 @@ function ChannelTabContent() {
             const res = await fetch("/api/channel/connect", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ channelTypeId }),
+                body: JSON.stringify({ channelTypeId, mock: isMockMode }),
             })
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || "Failed to start connection")
@@ -95,11 +98,24 @@ function ChannelTabContent() {
     }
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Channels</CardTitle>
-                <CardDescription>
-                    Connect your social media accounts to start scheduling
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+                <div>
+                    <CardTitle>Channels</CardTitle>
+                    <CardDescription>
+                        Connect your social media accounts to start scheduling
+                    </CardDescription>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-xl px-3 py-1.5 bg-muted/40 backdrop-blur-xs">
+                    <Label htmlFor="mock-mode" className="text-xs font-semibold cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                        Sandbox Mode
+                    </Label>
+                    <Switch
+                        id="mock-mode"
+                        checked={isMockMode}
+                        onCheckedChange={setIsMockMode}
+                        className="scale-90 cursor-pointer"
+                    />
+                </div>
             </CardHeader>
 
             <CardContent>

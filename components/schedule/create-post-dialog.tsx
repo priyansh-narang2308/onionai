@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { format, parse, set } from "date-fns";
+import { parse, set } from "date-fns";
 import { getChannelIcon } from "@/constants/channels";
 import { ChannelType } from "@/types/channel.type";
 import { ImageObject } from "@/types/post.type";
@@ -117,6 +117,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
       });
       setChannelContent(initialContent);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channels]);
 
   const connectedChannels = channels.filter((channel) => channel.connected);
@@ -353,7 +354,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
         )}
       >
         <div>
-          <DialogHeader className="px-8 py-3.5 border-b border-border/50 bg-gradient-to-r from-background to-muted/10">
+          <DialogHeader className="px-8 py-3.5 border-b border-border/50 bg-linear-to-r from-background to-muted/10">
             <div className="flex items-center justify-between">
               <DialogTitle className="font-semibold text-lg tracking-tight text-foreground/90">
                 Create Post

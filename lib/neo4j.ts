@@ -225,7 +225,7 @@ export async function getGraphData(
                 type,
                 color: properties.color,
                 status: properties.status,
-                content: properties.content,
+                content: properties.content || properties.description,
               });
             }
           }
@@ -248,7 +248,7 @@ export async function getGraphData(
                 type,
                 color: properties.color,
                 status: properties.status,
-                content: properties.content,
+                content: properties.content || properties.description,
               });
             }
           }

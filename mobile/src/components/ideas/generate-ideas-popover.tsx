@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from "react-native"
 import { X, Sparkles, Wand2, MessageSquare, Target, Zap } from "lucide-react-native"

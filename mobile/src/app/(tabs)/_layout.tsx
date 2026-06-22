@@ -1,6 +1,20 @@
 import { Tabs } from "expo-router";
-import { Platform, View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, UIManager } from "react-native";
-import { Lightbulb, Calendar, CreditCard, Settings } from "lucide-react-native";
+import {
+  Platform,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  LayoutAnimation,
+  UIManager,
+} from "react-native";
+import {
+  Lightbulb,
+  Calendar,
+  CreditCard,
+  Settings,
+  BarChart3,
+} from "lucide-react-native";
 import React from "react";
 
 // Enable LayoutAnimation for Android
@@ -19,8 +33,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : route.name;
 
         const isFocused = state.index === index;
 
@@ -59,15 +73,45 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           const strokeWidth = 2.2;
           switch (route.name) {
             case "ideas":
-              return <Lightbulb color={color} size={size} strokeWidth={strokeWidth} />;
+              return (
+                <Lightbulb
+                  color={color}
+                  size={size}
+                  strokeWidth={strokeWidth}
+                />
+              );
             case "schedule":
-              return <Calendar color={color} size={size} strokeWidth={strokeWidth} />;
+              return (
+                <Calendar color={color} size={size} strokeWidth={strokeWidth} />
+              );
+            case "dashboard":
+              return (
+                <BarChart3
+                  color={color}
+                  size={size}
+                  strokeWidth={strokeWidth}
+                />
+              );
             case "billing":
-              return <CreditCard color={color} size={size} strokeWidth={strokeWidth} />;
+              return (
+                <CreditCard
+                  color={color}
+                  size={size}
+                  strokeWidth={strokeWidth}
+                />
+              );
             case "settings":
-              return <Settings color={color} size={size} strokeWidth={strokeWidth} />;
+              return (
+                <Settings color={color} size={size} strokeWidth={strokeWidth} />
+              );
             default:
-              return <Lightbulb color={color} size={size} strokeWidth={strokeWidth} />;
+              return (
+                <Lightbulb
+                  color={color}
+                  size={size}
+                  strokeWidth={strokeWidth}
+                />
+              );
           }
         };
 
@@ -118,6 +162,12 @@ export default function TabsLayout() {
         name="schedule"
         options={{
           title: "Schedule",
+        }}
+      />
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: "Dashboard",
         }}
       />
       <Tabs.Screen
