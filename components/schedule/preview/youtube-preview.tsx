@@ -1,10 +1,16 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { ThumbsUp, ThumbsDown, MessageSquare, Share2, Play } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Share2,
+  Play,
+} from "lucide-react";
 
 interface YoutubePreviewProps {
-  text: string
-  images?: string[]
+  text: string;
+  images?: string[];
 }
 
 export function YoutubePreview({ text, images }: YoutubePreviewProps) {
@@ -28,7 +34,12 @@ export function YoutubePreview({ text, images }: YoutubePreviewProps) {
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-black/20 p-4 rounded-2xl backdrop-blur-sm">
-              <svg viewBox="0 0 24 24" className="size-12 text-white fill-white"><path d="M8 5v14l11-7z" /></svg>
+              <svg
+                viewBox="0 0 24 24"
+                className="size-12 text-white fill-white"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
             </div>
           </div>
 
@@ -85,5 +96,5 @@ export function YoutubePreview({ text, images }: YoutubePreviewProps) {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

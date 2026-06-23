@@ -1,11 +1,15 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { CalendarDays, ChevronDown, Clock, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { CalendarDays, ChevronDown, Clock, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 import {
   Select,
@@ -13,33 +17,33 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
-import { format, startOfDay, addMinutes, isSameDay, isBefore } from "date-fns"
+import { format, startOfDay, addMinutes, isSameDay, isBefore } from "date-fns";
 
 interface ScheduleDatePickerProps {
-  date: Date | undefined
-  setDate: (date: Date | undefined) => void
-  time: string
-  setTime: (time: string) => void
-  className?: string
-  align?: "start" | "center" | "end"
-  renderButton?: (isDatePassed: boolean, isTimeNotAvailable: boolean) => React.ReactNode
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  time: string;
+  setTime: (time: string) => void;
+  className?: string;
+  align?: "start" | "center" | "end";
+  renderButton?: (
+    isDatePassed: boolean,
+    isTimeNotAvailable: boolean,
+  ) => React.ReactNode;
 }
-
 
 const generateTimeOptions = () => {
-  const options: string[] = []
-  const baseDate = startOfDay(new Date())
+  const options: string[] = [];
+  const baseDate = startOfDay(new Date());
   for (let i = 0; i < 24 * 4; i++) {
-    options.push(format(addMinutes(baseDate, i * 15), "h:mm a"))
+    options.push(format(addMinutes(baseDate, i * 15), "h:mm a"));
   }
-  return options
-}
+  return options;
+};
 
-const timeOptions = generateTimeOptions()
-
-
+const timeOptions = generateTimeOptions();
 
 export function ScheduleDatePicker({
   date,
@@ -48,42 +52,50 @@ export function ScheduleDatePicker({
   setTime,
   className,
   align = "end",
-  renderButton
+  renderButton,
 }: ScheduleDatePickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const today = React.useMemo(() => startOfDay(new Date()), [])
-
+  const [open, setOpen] = React.useState(false);
+  const today = React.useMemo(() => startOfDay(new Date()), []);
 
   const availableTimeOptions = React.useMemo(() => {
-    if (!date || !isSameDay(date, new Date())) return timeOptions
-    const now = new Date()
+    if (!date || !isSameDay(date, new Date())) return timeOptions;
+    const now = new Date();
     return timeOptions.filter((slot) => {
-      const [timeValue, meridiem] = slot.split(" ")
-      const [rawHour, rawMinute] = timeValue.split(":").map(Number)
-      // hour - 
-      const hour = meridiem === "PM" && rawHour !== 12 ? rawHour + 12 : meridiem === "AM" && rawHour === 12 ? 0 : rawHour
-      const candidate = new Date(date)
-      candidate.setHours(hour, rawMinute, 0, 0)
-      return !isBefore(candidate, now)
-    })
-  }, [date])
+      const [timeValue, meridiem] = slot.split(" ");
+      const [rawHour, rawMinute] = timeValue.split(":").map(Number);
+      // hour -
+      const hour =
+        meridiem === "PM" && rawHour !== 12
+          ? rawHour + 12
+          : meridiem === "AM" && rawHour === 12
+            ? 0
+            : rawHour;
+      const candidate = new Date(date);
+      candidate.setHours(hour, rawMinute, 0, 0);
+      return !isBefore(candidate, now);
+    });
+  }, [date]);
 
   React.useEffect(() => {
     if (!time && availableTimeOptions.length > 0) {
-      setTime(availableTimeOptions[0])
-      return
+      setTime(availableTimeOptions[0]);
+      return;
     }
     if (time) {
-      setTime(time)
+      setTime(time);
     }
-  }, [availableTimeOptions, setTime, time])
+  }, [availableTimeOptions, setTime, time]);
 
-  const isDatePassed = date ? isBefore(date, new Date()) && !isSameDay(date, new Date()) : false
-  const isTimeNotAvailable = time ? !availableTimeOptions.includes(time) : false
+  const isDatePassed = date
+    ? isBefore(date, new Date()) && !isSameDay(date, new Date())
+    : false;
+  const isTimeNotAvailable = time
+    ? !availableTimeOptions.includes(time)
+    : false;
 
   const handleTimeChange = (newTime: string) => {
-    setTime(newTime)
-  }
+    setTime(newTime);
+  };
 
   return (
     <>
@@ -94,7 +106,9 @@ export function ScheduleDatePicker({
               <CalendarDays className="size-4" />
               <span className="flex items-center gap-1.5 font-semibold">
                 {date ? format(date, "MMMM d") : "Set Date & Time"}
-                {date && time && <span className="text-muted-foreground">, {time}</span>}
+                {date && time && (
+                  <span className="text-muted-foreground">, {time}</span>
+                )}
               </span>
             </span>
             <ChevronDown className="size-4!" />
@@ -109,7 +123,8 @@ export function ScheduleDatePicker({
               disabled={{ before: today }}
               className="p-0 w-full"
               formatters={{
-                formatWeekdayName: (date) => date.toLocaleDateString('en-US', { weekday: 'narrow' })
+                formatWeekdayName: (date) =>
+                  date.toLocaleDateString("en-US", { weekday: "narrow" }),
               }}
               classNames={{
                 month_caption: "flex justify-start items-center h-9 ml-2",
@@ -122,7 +137,7 @@ export function ScheduleDatePicker({
                 // row: "flex w-full mt-2 justify-between",
                 // cell: "text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                 day: cn(
-                  "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-lg hover:bg-muted transition-colors"
+                  "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-lg hover:bg-muted transition-colors",
                 ),
                 // day_selected: "bg-primary! text-primary-foreground! hover:bg-primary! hover:text-primary-foreground! rounded-lg",
                 // day_today: "bg-muted text-foreground",
@@ -133,7 +148,9 @@ export function ScheduleDatePicker({
             />
 
             <div className="space-y-1">
-              <h4 className="text-[13px] font-semibold text-foreground/70">Select Time</h4>
+              <h4 className="text-[13px] font-semibold text-foreground/70">
+                Select Time
+              </h4>
               <div className="flex items-center gap-2">
                 <Select value={time} onValueChange={handleTimeChange}>
                   <SelectTrigger className="w-full">
@@ -160,8 +177,7 @@ export function ScheduleDatePicker({
           </div>
         </PopoverContent>
       </Popover>
-      {renderButton && renderButton(isDatePassed, isTimeNotAvailable)
-      }
+      {renderButton && renderButton(isDatePassed, isTimeNotAvailable)}
     </>
-  )
+  );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getInsforgeAdminClient } from "@/lib/insforge-server";
 import { inngest } from "../client";
 import { ImageObject, PostType } from "@/types/post.type";
@@ -348,7 +349,7 @@ async function uploadImagesToTwitter({
     let data: any = null;
     try {
       data = JSON.parse(response);
-    } catch (e) {
+    } catch {
       logger.error("Failed to parse Twitter media upload response", {
         response,
       });
@@ -810,7 +811,6 @@ async function publishToBluesky({
 async function publishToYouTube({
   accessToken,
   content,
-  images,
   channelId,
   logger,
 }: {
@@ -1006,17 +1006,4 @@ async function markPostFailed(postId: string, errorMessage: string) {
     .eq("id", postId);
 
   if (error) throw error;
-}
-
-function formatLinkedInText(text: string): string {
-  return (
-    text
-      // normalize smart quotes to straight quotes
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/(\d+\.)\s{2}/g, "\n\n$1 ")
-      // trim
-      .trim()
-      .slice(0, 3000)
-  );
 }

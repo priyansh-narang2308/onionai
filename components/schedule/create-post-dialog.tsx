@@ -117,7 +117,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
       });
       setChannelContent(initialContent);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channels]);
 
   const connectedChannels = channels.filter((channel) => channel.connected);

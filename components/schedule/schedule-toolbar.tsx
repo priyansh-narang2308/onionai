@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { ChevronDown, Copy, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -53,13 +58,17 @@ const ScheduleToolbar = ({
   return (
     <div className="flex items-center gap-2">
       {viewType === "calendar" && (
-
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="lg" className="h-8 gap-1 cursor-pointer">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="h-8 gap-1 cursor-pointer"
+            >
               <Copy className="h-3.5 w-3.5" />
               <span className="font-medium text-sm text-muted-foreground!">
-                {statusOptions.find((s) => s.id === selectedStatus)?.label || "All Posts"}
+                {statusOptions.find((s) => s.id === selectedStatus)?.label ||
+                  "All Posts"}
               </span>
               <ChevronDown className="h-3.5 w-3.5" />
             </Button>
@@ -71,7 +80,7 @@ const ScheduleToolbar = ({
                   key={option.id}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors cursor-pointer",
-                    selectedStatus === option.id && "bg-muted font-medium"
+                    selectedStatus === option.id && "bg-muted font-medium",
                   )}
                   onClick={() => setSelectedStatus(option.id)}
                 >
@@ -109,7 +118,9 @@ const ScheduleToolbar = ({
               <CommandGroup heading="Connected Channels">
                 {connectedChannels?.length === 0 ? (
                   <div className="py-4 px-2 text-center">
-                    <p className="text-xs text-muted-foreground mb-3">No channels connected</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      No channels connected
+                    </p>
                     <Button size="sm" className="w-fit px-5" asChild>
                       <Link href="/settings">Connect Channel</Link>
                     </Button>
@@ -142,9 +153,8 @@ const ScheduleToolbar = ({
           </Command>
         </PopoverContent>
       </Popover>
-
     </div>
   );
-}
+};
 
 export default ScheduleToolbar;

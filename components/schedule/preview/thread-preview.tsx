@@ -1,15 +1,20 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Heart, MessageCircle, Repeat2, Send, Plus } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Heart, MessageCircle, Repeat2, Send, Plus } from "lucide-react";
 
 interface ThreadPreviewProps {
-  text: string
-  images?: string[]
-    profileImage?:string;
-  handle?:string;
+  text: string;
+  images?: string[];
+  profileImage?: string;
+  handle?: string;
 }
 
-export function ThreadPreview({ text, images, profileImage, handle }: ThreadPreviewProps) {
+export function ThreadPreview({
+  text,
+  images,
+  profileImage,
+  handle,
+}: ThreadPreviewProps) {
   return (
     <Card>
       <CardContent>
@@ -29,15 +34,22 @@ export function ThreadPreview({ text, images, profileImage, handle }: ThreadPrev
               <span className="text-xs text-muted-foreground">21h</span>
             </div>
             <p className="mt-1 text-sm leading-normal whitespace-pre-wrap break-words">
-              {text || <span className="text-muted-foreground italic">Nothing yet…</span>}
+              {text || (
+                <span className="text-muted-foreground italic">
+                  Nothing yet…
+                </span>
+              )}
             </p>
-            
+
             {/* Images display - Horizontal Scroll based on screenshot */}
             {images && images.length > 0 && (
               <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {images.map((image, index) => (
-                  <div key={index} className="relative shrink-0 w-[85%] 
-                  aspect-3/3 max-w-[300px]">
+                  <div
+                    key={index}
+                    className="relative shrink-0 w-[85%] 
+                  aspect-3/3 max-w-[300px]"
+                  >
                     <img
                       src={image}
                       alt={`Thread image ${index + 1}`}
@@ -51,12 +63,12 @@ export function ThreadPreview({ text, images, profileImage, handle }: ThreadPrev
             <div className="relative mt-3 flex items-center gap-4 text-muted-foreground">
               <Heart className="size-4" />
               <MessageCircle className="size-4 transform -rotate-90" />
-              <Repeat2 className="size-5"/>
+              <Repeat2 className="size-5" />
               <Send className="size-4" />
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
