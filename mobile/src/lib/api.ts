@@ -10,7 +10,18 @@ export async function fetchWithAuth(
 ) {
   let token: string | null = null
   if (getToken) {
-    token = await getToken({ template: "insforge" })
+    try {
+      token = await getToken({ template: "insforge" })
+    } catch (e) {
+      console.warn("Failed to fetch template token, falling back", e)
+    }
+    if (!token) {
+      try {
+        token = await getToken()
+      } catch (e) {
+        console.error("Failed to fetch default session token", e)
+      }
+    }
   }
 
   const headers: Record<string, string> = {

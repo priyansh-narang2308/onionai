@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tabs } from "expo-router";
 import {
   Platform,
@@ -167,7 +168,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: "Dashboard",
+          title: "Dash",
         }}
       />
       <Tabs.Screen
@@ -223,8 +224,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(132, 204, 22, 0.2)",
     borderRadius: 20,
     paddingVertical: 8,
-    paddingHorizontal: 14,
-    gap: 6,
+    paddingHorizontal: 10,
+    gap: 4,
   },
   activeLabel: {
     color: "#4d7c0f",
