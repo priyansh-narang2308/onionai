@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/refs */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import {
   StyleSheet,
@@ -63,7 +64,7 @@ const COLOR_LEGEND = [
 
 function layoutNodes(
   nodes: GraphNode[],
-  links: GraphLink[],
+  _links: GraphLink[],
 ): Map<string, Position> {
   const positions = new Map<string, Position>();
   const cx = GRAPH_SIZE / 2;
