@@ -278,8 +278,22 @@ export default function GraphPage() {
           bg: "#64748b",
           border: "#334155",
           label: "Node",
-          icon: "📌",
+          icon: "\u{1F4CC}",
         };
+    }
+  };
+
+  const getNodeRadius = (node: GraphNode) => {
+    switch (node.type) {
+      case "Idea":
+        return 34;
+      case "Post":
+        return 32;
+      case "Channel":
+      case "PlatformType":
+        return 30;
+      default:
+        return 32;
     }
   };
 
@@ -329,7 +343,7 @@ export default function GraphPage() {
         {/* SVG Canvas */}
         <div className="flex-1 bg-card/40 dark:bg-zinc-950 rounded-2xl border border-border shadow-inner relative overflow-hidden flex items-center justify-center">
           {/* Legend */}
-          <div className="absolute top-4 left-4 z-10 bg-card p-3.5 rounded-xl border border-border shadow-md flex flex-col gap-2 max-w-xs pointer-events-none">
+          <div className="absolute top-4 left-4 z-10 bg-background/70 backdrop-blur-xl p-4 rounded-xl border border-border/50 shadow-lg flex flex-col gap-2 max-w-xs pointer-events-none">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 border-b border-border pb-1.5">
               <Layers className="size-3.5 text-primary" /> Color Key
             </span>
@@ -430,6 +444,7 @@ export default function GraphPage() {
                       height={22}
                       rx={11}
                       fill="var(--card)"
+                      fillOpacity="0.92"
                       stroke={
                         isHighlighted ? "var(--primary)" : "var(--border)"
                       }
@@ -456,7 +471,7 @@ export default function GraphPage() {
                 const isSelected = selectedNode?.id === node.id;
                 const isHovered = hoveredNode === node.id;
                 const theme = getNodeTheme(node);
-                const radius = 36; // Uniform large clean circles
+                const radius = getNodeRadius(node);
 
                 return (
                   <g
@@ -505,27 +520,48 @@ export default function GraphPage() {
 
                     {/* High-contrast node label directly underneath */}
                     <g transform={`translate(0, ${radius + 20})`}>
-                      <rect
-                        x={-(Math.max(node.label.length, 8) * 4 + 14)}
-                        y={-14}
-                        width={Math.max(node.label.length, 8) * 8 + 28}
-                        height={28}
-                        rx={8}
-                        fill="var(--card)"
-                        stroke={isSelected ? theme.bg : "var(--border)"}
-                        strokeWidth={1.5}
-                        className="shadow-md transition-all duration-200"
-                      />
-                      <text
-                        y={4}
-                        fill="currentColor"
-                        className="text-[13px] font-extrabold text-foreground pointer-events-none select-none"
-                        textAnchor="middle"
-                      >
-                        {node.label.length > 22
-                          ? node.label.substring(0, 20) + "..."
-                          : node.label}
-                      </text>
+                      {(() => {
+                        const categoryStr =
+                          node.type === "Idea"
+                            ? "IDEA"
+                            : node.type === "Post"
+                              ? "POST"
+                              : "CHANNEL";
+                        const labelW = Math.max(node.label.length, categoryStr.length) * 8 + 32;
+                        return (
+                          <>
+                            <rect
+                              x={-(labelW / 2)}
+                              y={-18}
+                              width={labelW}
+                              height={40}
+                              rx={6}
+                              fill="var(--card)"
+                              stroke={isSelected ? theme.bg : "var(--border)"}
+                              strokeWidth={1.5}
+                              className="shadow-md transition-all duration-200"
+                            />
+                            <text
+                              y={-2}
+                              fill="currentColor"
+                              className="text-[13px] font-extrabold text-foreground pointer-events-none select-none"
+                              textAnchor="middle"
+                            >
+                              {node.label.length > 22
+                                ? node.label.substring(0, 20) + "..."
+                                : node.label}
+                            </text>
+                            <text
+                              y={14}
+                              fill="currentColor"
+                              className="text-[9px] font-bold text-muted-foreground pointer-events-none select-none uppercase tracking-widest"
+                              textAnchor="middle"
+                            >
+                              {categoryStr}
+                            </text>
+                          </>
+                        );
+                      })()}
                     </g>
                   </g>
                 );
