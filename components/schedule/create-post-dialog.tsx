@@ -38,6 +38,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import IdeasList from "./ideas-list";
 import PreviewPanel from "./preview";
 import { TranslationWidget } from "./translation-widget";
+import { SarvamTTSWidget } from "./sarvam-tts-widget";
+import { SarvamSTTWidget } from "./sarvam-stt-widget";
 import { ButtonGroup } from "../ui/button-group";
 import { POST_STATUS, PostStatus } from "@/constants/post";
 import { ScheduleDatePicker } from "./schedule-date-picker";
@@ -503,7 +505,16 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                           handleGlobalContentChange(globalContent.text, images)
                         }
                         renderToolbarRight={
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <SarvamSTTWidget
+                              onTranscript={(transcript) =>
+                                handleGlobalContentChange(
+                                  (globalContent?.text
+                                    ? globalContent.text + " "
+                                    : "") + transcript
+                                )
+                              }
+                            />
                             <TranslationWidget
                               text={globalContent?.text || ""}
                               onTranslate={(translated) =>
@@ -514,6 +525,9 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                         }
                       />
                     </div>
+                    {globalContent?.text && (
+                      <SarvamTTSWidget text={globalContent.text} />
+                    )}
                   </div>
                 ) : (
                   <Accordion
@@ -625,7 +639,18 @@ dark:text-amber-400"
                                     }));
                                   }}
                                   renderToolbarRight={
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <SarvamSTTWidget
+                                        onTranscript={(transcript) =>
+                                          handleTextChange(
+                                            channel.id,
+                                            (content?.text
+                                              ? content.text + " "
+                                              : "") + transcript,
+                                            channel.character_limit
+                                          )
+                                        }
+                                      />
                                       <TranslationWidget
                                         text={content?.text || ""}
                                         onTranslate={(translated) =>
@@ -653,6 +678,11 @@ dark:text-amber-400"
                                   }
                                 />
                               </div>
+                              {content?.text && (
+                                <div className="mt-2">
+                                  <SarvamTTSWidget text={content.text} />
+                                </div>
+                              )}
                             </div>
                           </AccordionContent>
                         </AccordionItem>

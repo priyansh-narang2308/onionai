@@ -404,20 +404,45 @@ export default function IdeasTab() {
             </ScrollView>
             <View style={styles.modalFooter}>
               {selectedIdea && (
-                <TouchableOpacity
-                  onPress={handleDelete}
-                  style={[styles.actionBtn, styles.deleteBtn]}
-                  disabled={deleteIdeaMutation.isPending}
-                >
-                  {deleteIdeaMutation.isPending ? (
-                    <ActivityIndicator color="#ef4444" size="small" />
-                  ) : (
-                    <>
-                      <Trash2 color="#ef4444" size={16} />
-                      <Text style={styles.deleteBtnText}>Delete</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    onPress={handleDelete}
+                    style={[styles.actionBtn, styles.deleteBtn]}
+                    disabled={deleteIdeaMutation.isPending}
+                  >
+                    {deleteIdeaMutation.isPending ? (
+                      <ActivityIndicator color="#ef4444" size="small" />
+                    ) : (
+                      <>
+                        <Trash2 color="#ef4444" size={16} />
+                        <Text style={styles.deleteBtnText}>Delete</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  {/* Move to column action */}
+                  <View style={styles.moveToContainer}>
+                    <Text style={styles.moveToLabel}>Move to</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      {columns
+                        .filter((col) => col.id !== formColumnId)
+                        .slice(0, 4)
+                        .map((col) => (
+                          <TouchableOpacity
+                            key={col.id}
+                            onPress={() => {
+                              setFormColumnId(col.id);
+                              setTimeout(handleSave, 100);
+                            }}
+                            style={styles.moveToChip}
+                          >
+                            <Text style={styles.moveToChipText}>
+                              {col.title}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                  </View>
+                </>
               )}
               <TouchableOpacity
                 onPress={handleSave}
@@ -748,6 +773,30 @@ const styles = StyleSheet.create({
   },
   columnSelectText: { fontSize: 12, fontWeight: "600", color: "#71717a" },
   columnSelectTextActive: { color: "#84cc16", fontWeight: "700" },
+  moveToContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 2,
+  },
+  moveToLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#a1a1aa",
+    marginRight: 2,
+  },
+  moveToChip: {
+    backgroundColor: "#f4f4f5",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginRight: 4,
+  },
+  moveToChipText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#71717a",
+  },
   modalFooter: {
     flexDirection: "row",
     gap: 12,

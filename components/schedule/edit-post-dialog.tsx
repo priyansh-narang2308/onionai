@@ -38,6 +38,8 @@ import { getChannelIcon } from "@/constants/channels";
 import ContentTextarea from "../content-textarea";
 import IdeasList from "./ideas-list";
 import { TranslationWidget } from "./translation-widget";
+import { SarvamTTSWidget } from "./sarvam-tts-widget";
+import { SarvamSTTWidget } from "./sarvam-stt-widget";
 import PreviewPanel from "./preview";
 import { AIAssistant } from "./ai-assitant";
 
@@ -250,7 +252,14 @@ export function EditPostDialog({
                         onChange={setContent}
                         onImagesChange={setImages}
                         renderToolbarRight={
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <SarvamSTTWidget
+                              onTranscript={(transcript) =>
+                                setContent(
+                                  (content ? content + " " : "") + transcript,
+                                )
+                              }
+                            />
                             <TranslationWidget
                               text={content}
                               onTranslate={setContent}
@@ -271,6 +280,11 @@ export function EditPostDialog({
                           </div>
                         }
                       />
+                      {content && (
+                        <div className="mt-2">
+                          <SarvamTTSWidget text={content} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

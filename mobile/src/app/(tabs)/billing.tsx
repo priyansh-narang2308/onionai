@@ -6,22 +6,31 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   CreditCard,
   Check,
   Sparkles,
   Zap,
   ShieldCheck,
+  ExternalLink,
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
+
+const WEB_APP_URL = "https://onionai.app";
 
 export default function BillingTab() {
   const [isYearly, setIsYearly] = useState(false);
   const [activePlan, setActivePlan] = useState<"free" | "pro" | "premium">(
     "pro",
   );
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { getToken } = useAuth();
   const { toast } = useToast();
 
   const plans = [
@@ -176,24 +185,40 @@ export default function BillingTab() {
                 ))}
               </View>
               <TouchableOpacity
-                onPress={() => {
+                onPress={async () => {
                   setActivePlan(plan.id);
-                  if (plan.id !== "free")
-                    toast(`Checkout for ${plan.name} coming soon!`);
+                  if (plan.id === "free") return;
+                  setLoadingPlan(plan.id);
+                  try {
+                    const billingUrl = `${WEB_APP_URL}/billing?plan=${plan.id}&period=${isYearly ? "yearly" : "monthly"}`;
+                    const token = await getToken();
+                    await WebBrowser.openBrowserAsync(
+                      `${billingUrl}&_clerk_session=${token || ""}`,
+                    );
+                  } catch {
+                    toast("Could not open billing page", "error");
+                  } finally {
+                    setLoadingPlan(null);
+                  }
                 }}
                 style={[
                   styles.planButton,
                   isSelected && styles.planButtonSelected,
                 ]}
+                disabled={loadingPlan !== null}
               >
-                <Text
-                  style={[
-                    styles.planButtonText,
-                    isSelected && styles.planButtonTextSelected,
-                  ]}
-                >
-                  {isSelected ? "Current Plan" : `Upgrade to ${plan.name}`}
-                </Text>
+                {loadingPlan === plan.id ? (
+                  <ActivityIndicator color={isSelected ? "#ffffff" : "#09090b"} size="small" />
+                ) : (
+                  <Text
+                    style={[
+                      styles.planButtonText,
+                      isSelected && styles.planButtonTextSelected,
+                    ]}
+                  >
+                    {isSelected ? "Current Plan" : `Upgrade to ${plan.name}`}
+                  </Text>
+                )}
               </TouchableOpacity>
             </TouchableOpacity>
           );

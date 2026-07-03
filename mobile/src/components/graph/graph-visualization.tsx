@@ -1,4 +1,6 @@
-import React, { useMemo } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/refs */
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,11 +8,25 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
+  PanResponder,
 } from "react-native";
+import Svg, { Circle, Line, Text as SvgText, G } from "react-native-svg";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "../../lib/api";
-import { Network, BarChart3, RefreshCw } from "lucide-react-native";
+import {
+  Network,
+  BarChart3,
+  RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  Move,
+} from "lucide-react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const GRAPH_SIZE = Math.min(SCREEN_WIDTH - 32, 360);
+const NODE_RADIUS = 24;
 
 interface GraphNode {
   id: string;
@@ -19,8 +35,89 @@ interface GraphNode {
   color?: string;
 }
 
+interface GraphLink {
+  source: string;
+  target: string;
+  label?: string;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+const NODE_COLORS: Record<string, string> = {
+  idea: "#f59e0b",
+  post: "#3b82f6",
+  channel: "#10b981",
+  platform: "#8b5cf6",
+};
+const COLOR_LEGEND = [
+  { type: "Idea", color: "#f59e0b" },
+  { type: "Post (Scheduled)", color: "#3b82f6" },
+  { type: "Post (Published)", color: "#10b981" },
+  { type: "Channel/Platform", color: "#8b5cf6" },
+];
+
+function layoutNodes(
+  nodes: GraphNode[],
+  links: GraphLink[],
+): Map<string, Position> {
+  const positions = new Map<string, Position>();
+  const cx = GRAPH_SIZE / 2;
+  const cy = GRAPH_SIZE / 2;
+  const radius = GRAPH_SIZE * 0.35;
+
+  if (nodes.length === 0) return positions;
+
+  const typeGroups: Record<string, GraphNode[]> = {};
+  nodes.forEach((n) => {
+    if (!typeGroups[n.type]) typeGroups[n.type] = [];
+    typeGroups[n.type].push(n);
+  });
+
+  const types = Object.keys(typeGroups);
+  const angleStep = (2 * Math.PI) / nodes.length;
+  const typeAngles: Record<string, number> = {};
+  types.forEach((t, i) => {
+    typeAngles[t] = (2 * Math.PI * i) / types.length;
+  });
+
+  let idx = 0;
+  nodes.forEach((node) => {
+    const angle = typeAngles[node.type] + idx * 0.3;
+    positions.set(node.id, {
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle),
+    });
+    idx++;
+  });
+
+  return positions;
+}
+
 export function GraphVisualization() {
   const { getToken } = useAuth();
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const lastOffset = useRef({ x: 0, y: 0 });
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        lastOffset.current = { ...offset };
+      },
+      onPanResponderMove: (_, gesture) => {
+        setOffset({
+          x: lastOffset.current.x + gesture.dx,
+          y: lastOffset.current.y + gesture.dy,
+        });
+      },
+    }),
+  ).current;
 
   const {
     data: graphData,
@@ -31,6 +128,11 @@ export function GraphVisualization() {
     queryFn: () => fetchWithAuth("/api/graph", { method: "GET" }, getToken),
   });
 
+  const nodePositions = useMemo(() => {
+    if (!graphData?.nodes) return new Map();
+    return layoutNodes(graphData.nodes, graphData.links || []);
+  }, [graphData]);
+
   const stats = useMemo(() => {
     if (!graphData?.nodes) return {};
     const typeCount: Record<string, number> = {};
@@ -40,15 +142,13 @@ export function GraphVisualization() {
     return typeCount;
   }, [graphData]);
 
-  const getNodeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      idea: "#3b82f6",
-      post: "#10b981",
-      channel: "#f59e0b",
-      platform: "#8b5cf6",
-    };
-    return colors[type] || "#6b7280";
-  };
+  const getNodeColor = (type: string) => NODE_COLORS[type] || "#6b7280";
+  const getNodeLabel = (type: string) =>
+    type.charAt(0).toUpperCase() + type.slice(1);
+
+  const handleNodePress = useCallback((node: GraphNode) => {
+    setSelectedNode((prev) => (prev?.id === node.id ? null : node));
+  }, []);
 
   if (isLoading) {
     return (
@@ -72,33 +172,191 @@ export function GraphVisualization() {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => refetch()}>
+        <TouchableOpacity
+          onPress={() => {
+            setScale(1);
+            setOffset({ x: 0, y: 0 });
+            refetch();
+          }}
+        >
           <RefreshCw color="#71717a" size={20} />
         </TouchableOpacity>
       </View>
 
-      {/* Statistics Cards */}
-      <View style={styles.statsGrid}>
-        {Object.entries(stats).map(([type, count]) => (
-          <View key={type} style={styles.statCard}>
-            <View
-              style={[
-                styles.statCircle,
-                { backgroundColor: getNodeColor(type) },
-              ]}
-            >
-              <Text style={styles.statCount}>{count}</Text>
-            </View>
-            <Text style={styles.statLabel}>
-              {type.charAt(0).toUpperCase() + type.slice(1)}s
-            </Text>
+      {/* Color Legend */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.legendBar}
+        contentContainerStyle={styles.legendContent}
+      >
+        {COLOR_LEGEND.map((item) => (
+          <View key={item.type} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+            <Text style={styles.legendText}>{item.type}</Text>
           </View>
         ))}
+      </ScrollView>
+
+      {/* Interactive Graph Canvas */}
+      <View style={styles.graphContainer}>
+        <View
+          style={[
+            styles.graphCanvas,
+            { width: GRAPH_SIZE, height: GRAPH_SIZE },
+          ]}
+          {...panResponder.panHandlers}
+        >
+          <Svg width={GRAPH_SIZE} height={GRAPH_SIZE}>
+            <G transform={`translate(${offset.x},${offset.y}) scale(${scale})`}>
+              {/* Links */}
+              {(graphData?.links || []).map((link: GraphLink, i: number) => {
+                const sourcePos = nodePositions.get(
+                  typeof link.source === "object"
+                    ? (link.source as any).id
+                    : link.source,
+                );
+                const targetPos = nodePositions.get(
+                  typeof link.target === "object"
+                    ? (link.target as any).id
+                    : link.target,
+                );
+                if (!sourcePos || !targetPos) return null;
+                return (
+                  <G key={`link-${i}`}>
+                    <Line
+                      x1={sourcePos.x}
+                      y1={sourcePos.y}
+                      x2={targetPos.x}
+                      y2={targetPos.y}
+                      stroke="#d4d4d8"
+                      strokeWidth={1.5}
+                      strokeDasharray={link.label ? "4,3" : undefined}
+                    />
+                    {link.label && (
+                      <SvgText
+                        x={(sourcePos.x + targetPos.x) / 2}
+                        y={(sourcePos.y + targetPos.y) / 2 - 6}
+                        fill="#a1a1aa"
+                        fontSize={8}
+                        fontWeight="500"
+                        textAnchor="middle"
+                      >
+                        {link.label}
+                      </SvgText>
+                    )}
+                  </G>
+                );
+              })}
+
+              {/* Nodes */}
+              {(graphData?.nodes || []).map((node: GraphNode) => {
+                const pos = nodePositions.get(node.id);
+                if (!pos) return null;
+                const isSelected = selectedNode?.id === node.id;
+                return (
+                  <G key={node.id} onPress={() => handleNodePress(node)}>
+                    {/* Selection ring */}
+                    {isSelected && (
+                      <Circle
+                        cx={pos.x}
+                        cy={pos.y}
+                        r={NODE_RADIUS + 4}
+                        fill="none"
+                        stroke={getNodeColor(node.type)}
+                        strokeWidth={2}
+                        opacity={0.5}
+                      />
+                    )}
+                    <Circle
+                      cx={pos.x}
+                      cy={pos.y}
+                      r={NODE_RADIUS}
+                      fill={getNodeColor(node.type)}
+                      opacity={0.9}
+                    />
+                    <SvgText
+                      x={pos.x}
+                      y={pos.y + 4}
+                      fill="#ffffff"
+                      fontSize={10}
+                      fontWeight="700"
+                      textAnchor="middle"
+                    >
+                      {node.label?.substring(0, 3).toUpperCase() || "?"}
+                    </SvgText>
+                  </G>
+                );
+              })}
+            </G>
+          </Svg>
+        </View>
+
+        {/* Zoom controls */}
+        <View style={styles.zoomControls}>
+          <TouchableOpacity
+            onPress={() => setScale((s) => Math.min(s + 0.2, 2.5))}
+            style={styles.zoomBtn}
+          >
+            <ZoomIn color="#09090b" size={18} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setScale((s) => Math.max(s - 0.2, 0.5))}
+            style={styles.zoomBtn}
+          >
+            <ZoomOut color="#09090b" size={18} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setScale(1);
+              setOffset({ x: 0, y: 0 });
+            }}
+            style={styles.zoomBtn}
+          >
+            <Move color="#09090b" size={18} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Network Overview */}
+      {/* Selected Node Details */}
+      {selectedNode && (
+        <View style={styles.detailPanel}>
+          <View style={styles.detailDot} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.detailTitle}>{selectedNode.label}</Text>
+            <Text style={styles.detailType}>
+              {getNodeLabel(selectedNode.type)}
+            </Text>
+            {selectedNode.id && (
+              <Text style={styles.detailId}>ID: {selectedNode.id}</Text>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Statistics Cards */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Network Overview</Text>
+        <Text style={styles.sectionTitle}>Overview</Text>
+        <View style={styles.statsGrid}>
+          {Object.entries(stats).map(([type, count]) => (
+            <View key={type} style={styles.statCard}>
+              <View
+                style={[
+                  styles.statCircle,
+                  { backgroundColor: getNodeColor(type) },
+                ]}
+              >
+                <Text style={styles.statCount}>{count}</Text>
+              </View>
+              <Text style={styles.statLabel}>{getNodeLabel(type)}s</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Network Summary */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Network</Text>
         <View style={styles.networkCard}>
           <View style={styles.networkInfo}>
             <Text style={styles.networkLabel}>Total Nodes</Text>
@@ -120,8 +378,15 @@ export function GraphVisualization() {
       {graphData?.nodes && graphData.nodes.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Content Items</Text>
-          {graphData.nodes.slice(0, 10).map((node: GraphNode) => (
-            <View key={node.id} style={styles.nodeItem}>
+          {graphData.nodes.slice(0, 15).map((node: GraphNode) => (
+            <TouchableOpacity
+              key={node.id}
+              style={[
+                styles.nodeItem,
+                selectedNode?.id === node.id && styles.nodeItemSelected,
+              ]}
+              onPress={() => handleNodePress(node)}
+            >
               <View
                 style={[
                   styles.nodeColor,
@@ -129,50 +394,44 @@ export function GraphVisualization() {
                 ]}
               />
               <View style={styles.nodeContent}>
-                <Text style={styles.nodeLabel}>{node.label}</Text>
-                <Text style={styles.nodeType}>{node.type}</Text>
+                <Text style={styles.nodeLabel} numberOfLines={1}>
+                  {node.label}
+                </Text>
+                <Text style={styles.nodeType}>{getNodeLabel(node.type)}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
-          {graphData.nodes.length > 10 && (
+          {graphData.nodes.length > 15 && (
             <Text style={styles.moreItems}>
-              +{graphData.nodes.length - 10} more items
+              +{graphData.nodes.length - 15} more items
             </Text>
           )}
         </View>
       )}
 
       {/* Empty State */}
-      {!graphData?.nodes ||
-        (graphData.nodes.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <BarChart3 color="#d1d5db" size={40} />
-            <Text style={styles.emptyText}>No graph data yet</Text>
-            <Text style={styles.emptySubtext}>
-              Create ideas and posts to build your content graph
-            </Text>
-          </View>
-        ))}
+      {(!graphData?.nodes || graphData.nodes.length === 0) && (
+        <View style={styles.emptyContainer}>
+          <BarChart3 color="#d1d5db" size={40} />
+          <Text style={styles.emptyText}>No graph data yet</Text>
+          <Text style={styles.emptySubtext}>
+            Create ideas and posts to build your content graph
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
+  container: { flex: 1, backgroundColor: "#ffffff" },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingBottom: 40,
   },
-  loadingText: {
-    marginTop: 12,
-    color: "#71717a",
-    fontSize: 14,
-  },
+  loadingText: { marginTop: 12, color: "#71717a", fontSize: 14 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -188,27 +447,84 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1a1a1a",
+  headerTitle: { fontSize: 18, fontWeight: "600", color: "#1a1a1a" },
+  headerSubtitle: { fontSize: 12, color: "#9ca3af", marginTop: 2 },
+  legendBar: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
   },
-  headerSubtitle: {
-    fontSize: 12,
-    color: "#9ca3af",
-    marginTop: 2,
+  legendContent: { paddingHorizontal: 16, gap: 16, flexDirection: "row" },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: { fontSize: 11, color: "#71717a", fontWeight: "500" },
+  graphContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+    position: "relative",
+  },
+  graphCanvas: {
+    backgroundColor: "#fafafa",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f4f4f5",
+    overflow: "hidden",
+  },
+  zoomControls: {
+    position: "absolute",
+    bottom: 24,
+    right: 16,
+    gap: 4,
+  },
+  zoomBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  detailPanel: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    padding: 14,
+    backgroundColor: "#fafafa",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    marginBottom: 16,
+    gap: 12,
+  },
+  detailDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#84cc16",
+  },
+  detailTitle: { fontSize: 14, fontWeight: "700", color: "#09090b" },
+  detailType: { fontSize: 11, color: "#71717a", marginTop: 2 },
+  detailId: { fontSize: 10, color: "#a1a1aa", marginTop: 2 },
+  section: { paddingHorizontal: 16, marginBottom: 20 },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 12,
+    color: "#1a1a1a",
   },
   statsGrid: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingHorizontal: 12,
-    paddingVertical: 16,
     gap: 8,
   },
-  statCard: {
-    alignItems: "center",
-    flex: 1,
-  },
+  statCard: { alignItems: "center", flex: 1 },
   statCircle: {
     width: 50,
     height: 50,
@@ -217,29 +533,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  statCount: {
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: "#1a1a1a",
-  },
+  statCount: { color: "#ffffff", fontWeight: "700", fontSize: 16 },
+  statLabel: { fontSize: 12, color: "#6b7280", textAlign: "center" },
   networkCard: {
     flexDirection: "row",
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e5e5e5",
     backgroundColor: "#fafafa",
@@ -251,49 +549,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: "center",
   },
-  networkLabel: {
-    fontSize: 12,
-    color: "#9ca3af",
-    marginBottom: 4,
-  },
-  networkValue: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#84cc16",
-  },
-  networkDivider: {
-    width: 1,
-    backgroundColor: "#e5e5e5",
-  },
+  networkLabel: { fontSize: 12, color: "#9ca3af", marginBottom: 4 },
+  networkValue: { fontSize: 20, fontWeight: "700", color: "#84cc16" },
+  networkDivider: { width: 1, backgroundColor: "#e5e5e5" },
   nodeItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 12,
-    borderRadius: 6,
+    borderRadius: 10,
     backgroundColor: "#f9f9f9",
     marginBottom: 8,
   },
-  nodeColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
+  nodeItemSelected: {
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
   },
-  nodeContent: {
-    flex: 1,
-  },
+  nodeColor: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
+  nodeContent: { flex: 1 },
   nodeLabel: {
     fontSize: 13,
     fontWeight: "500",
     color: "#1a1a1a",
     marginBottom: 2,
   },
-  nodeType: {
-    fontSize: 11,
-    color: "#9ca3af",
-    textTransform: "capitalize",
-  },
+  nodeType: { fontSize: 11, color: "#9ca3af", textTransform: "capitalize" },
   moreItems: {
     fontSize: 12,
     color: "#9ca3af",

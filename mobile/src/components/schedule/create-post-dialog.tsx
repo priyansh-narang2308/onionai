@@ -16,6 +16,7 @@ import {
   Eye,
   ChevronDown,
   Calendar,
+  Globe,
 } from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
@@ -23,6 +24,7 @@ import { ContentTextarea } from "../content-textarea";
 import { PreviewPanel } from "../preview/preview-panel";
 import { AIAssistant } from "./ai-assistant";
 import { IdeasList } from "./ideas-list";
+import { TranslationWidget } from "./translation-widget";
 import { getChannelInfo, CHANNEL_PLATFORMS } from "../../constants/channels";
 import { useToast } from "../../components/ui/toast";
 import { fetchWithAuth } from "../../lib/api";
@@ -45,26 +47,68 @@ export function CreatePostDialog({
   initialChannels,
 }: Props) {
   const [tab, setTab] = useState<Tab>("compose");
-  const [content, setContent] = useState(initialContent || "");
+  const [globalContent, setGlobalContent] = useState(initialContent || "");
+  const [perChannelContent, setPerChannelContent] = useState<
+    Record<string, string>
+  >({});
   const [selectedChannels, setSelectedChannels] = useState<string[]>(
     initialChannels || [],
   );
+  const [expandedChannel, setExpandedChannel] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [showChannels, setShowChannels] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { getToken } = useAuth();
 
   const toggleChannel = (type: string) => {
-    setSelectedChannels((prev) =>
-      prev.includes(type) ? prev.filter((c) => c !== type) : [...prev, type],
-    );
+    setSelectedChannels((prev) => {
+      if (prev.includes(type)) {
+        const next = prev.filter((c) => c !== type);
+        const newContent = { ...perChannelContent };
+        delete newContent[type];
+        setPerChannelContent(newContent);
+        return next;
+      }
+      return [...prev, type];
+    });
+    setExpandedChannel(null);
+  };
+
+  const getChannelContent = (channelType: string): string => {
+    return perChannelContent[channelType] ?? globalContent;
+  };
+
+  const setChannelContent = (channelType: string, text: string) => {
+    if (text === globalContent) {
+      const newContent = { ...perChannelContent };
+      delete newContent[channelType];
+      setPerChannelContent(newContent);
+    } else {
+      setPerChannelContent((prev) => ({ ...prev, [channelType]: text }));
+    }
+  };
+
+  const handleGlobalChange = (text: string) => {
+    setGlobalContent(text);
+    const newContent = { ...perChannelContent };
+    let changed = false;
+    selectedChannels.forEach((ch) => {
+      if (newContent[ch] !== undefined) {
+        if (newContent[ch] === globalContent || newContent[ch] === text) {
+          delete newContent[ch];
+          changed = true;
+        }
+      }
+    });
+    if (changed) setPerChannelContent(newContent);
   };
 
   const handlePublish = async (status: "published" | "queue") => {
-    if (!content.trim()) {
+    if (!globalContent.trim()) {
       toast("Please add some content", "error");
       return;
     }
@@ -75,9 +119,15 @@ export function CreatePostDialog({
 
     setPublishing(true);
     try {
+      const channelContents: Record<string, { text: string }> = {};
+      selectedChannels.forEach((ch) => {
+        channelContents[ch] = { text: getChannelContent(ch) };
+      });
+
       const body: Record<string, unknown> = {
-        content,
+        content: globalContent,
         channels: selectedChannels,
+        channelContents,
         status,
       };
       if (status === "queue" && scheduleDate) {
@@ -128,7 +178,7 @@ export function CreatePostDialog({
             backgroundColor: "#ffffff",
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
-            maxHeight: "92%",
+            maxHeight: "95%",
             paddingBottom: 40,
           }}
         >
@@ -201,6 +251,7 @@ export function CreatePostDialog({
           <ScrollView
             style={{ paddingHorizontal: 20, marginTop: 16 }}
             contentContainerStyle={{ gap: 16, paddingBottom: 20 }}
+            keyboardShouldPersistTaps="handled"
           >
             {tab === "compose" && (
               <>
@@ -305,12 +356,223 @@ export function CreatePostDialog({
                   )}
                 </View>
 
-                <ContentTextarea
-                  value={content}
-                  onChange={setContent}
-                  placeholder="What do you want to share?"
-                  minHeight={200}
-                />
+                {/* Global Content */}
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: "600",
+                      color: "#52525b",
+                      marginBottom: 6,
+                    }}
+                  >
+                    Content (shared across channels)
+                  </Text>
+                  <ContentTextarea
+                    value={globalContent}
+                    onChange={handleGlobalChange}
+                    placeholder="What do you want to share?"
+                    minHeight={140}
+                  />
+                </View>
+
+                {/* Per-channel editors */}
+                {selectedChannels.length > 1 &&
+                  selectedChannels.map((ch) => {
+                    const info = getChannelInfo(ch);
+                    const chContent = getChannelContent(ch);
+                    const isCustom = perChannelContent[ch] !== undefined;
+                    const overLimit = chContent.length > (info?.character_limit || Infinity);
+
+                    return (
+                      <View
+                        key={ch}
+                        style={{
+                          borderWidth: 1,
+                          borderColor: expandedChannel === ch ? info?.color + "40" : "#f4f4f5",
+                          borderRadius: 14,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <TouchableOpacity
+                          onPress={() =>
+                            setExpandedChannel(
+                              expandedChannel === ch ? null : ch,
+                            )
+                          }
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            paddingHorizontal: 14,
+                            paddingVertical: 10,
+                            backgroundColor: isCustom ? "#fafafa" : "#ffffff",
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: info?.color,
+                              }}
+                            />
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: "700",
+                                color: "#09090b",
+                              }}
+                            >
+                              {info?.name}
+                            </Text>
+                            {isCustom && (
+                              <View
+                                style={{
+                                  paddingHorizontal: 6,
+                                  paddingVertical: 2,
+                                  borderRadius: 4,
+                                  backgroundColor: "#f4f5f0",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 8,
+                                    fontWeight: "800",
+                                    color: "#4d7c0f",
+                                  }}
+                                >
+                                  CUSTOM
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: "600",
+                                color: overLimit ? "#ef4444" : "#a1a1aa",
+                              }}
+                            >
+                              {chContent.length}
+                              {info?.character_limit
+                                ? `/${info.character_limit}`
+                                : ""}
+                            </Text>
+                            <ChevronDown
+                              color="#a1a1aa"
+                              size={14}
+                              style={{
+                                transform: [
+                                  {
+                                    rotate:
+                                      expandedChannel === ch ? "180deg" : "0deg",
+                                  },
+                                ],
+                              }}
+                            />
+                          </View>
+                        </TouchableOpacity>
+                        {expandedChannel === ch && (
+                          <View style={{ paddingHorizontal: 14, paddingBottom: 12 }}>
+                            <TextInput
+                              style={{
+                                backgroundColor: "#fafafa",
+                                borderWidth: 1,
+                                borderColor: "#e4e4e7",
+                                borderRadius: 10,
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                fontSize: 13,
+                                color: "#09090b",
+                                minHeight: 80,
+                                textAlignVertical: "top",
+                              }}
+                              value={chContent}
+                              onChangeText={(text) =>
+                                setChannelContent(ch, text)
+                              }
+                              placeholder={`Customize for ${info?.name}...`}
+                              placeholderTextColor="#a1a1aa"
+                              multiline
+                            />
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                justifyContent: "flex-end",
+                                marginTop: 4,
+                              }}
+                            >
+                              <TouchableOpacity
+                                onPress={() => {
+                                  const newContent = { ...perChannelContent };
+                                  delete newContent[ch];
+                                  setPerChannelContent(newContent);
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 10,
+                                    color: "#71717a",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Reset to global
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+
+                {/* Translation & Schedule row */}
+                <View
+                  style={{ flexDirection: "row", gap: 12, flexWrap: "wrap" }}
+                >
+                  <TouchableOpacity
+                    onPress={() =>
+                      globalContent.trim()
+                        ? setShowTranslation(true)
+                        : toast("Add content first", "error")
+                    }
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      paddingVertical: 10,
+                      paddingHorizontal: 14,
+                      borderRadius: 10,
+                      backgroundColor: "#f4f4f5",
+                    }}
+                  >
+                    <Globe color="#71717a" size={16} />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "600",
+                        color: "#71717a",
+                      }}
+                    >
+                      Translate
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
                 {/* Schedule */}
                 <View style={{ flexDirection: "row", gap: 12 }}>
@@ -373,7 +635,7 @@ export function CreatePostDialog({
             {tab === "ideas" && (
               <IdeasList
                 onSelectIdea={(text) => {
-                  setContent(text);
+                  setGlobalContent(text);
                   setTab("compose");
                 }}
               />
@@ -381,16 +643,17 @@ export function CreatePostDialog({
 
             {tab === "ai" && (
               <AIAssistant
-                content={content}
-                onContentChange={setContent}
+                content={globalContent}
+                onContentChange={setGlobalContent}
                 onClose={() => setTab("compose")}
               />
             )}
 
             {tab === "preview" && (
               <PreviewPanel
-                content={content}
+                content={globalContent}
                 selectedChannels={selectedChannels}
+                perChannelContent={perChannelContent}
               />
             )}
           </ScrollView>
@@ -456,6 +719,17 @@ export function CreatePostDialog({
           </View>
         </View>
       </View>
+
+      <TranslationWidget
+        visible={showTranslation}
+        onClose={() => setShowTranslation(false)}
+        content={globalContent}
+        onTranslate={(translatedContent, _language) => {
+          setGlobalContent(translatedContent);
+          setShowTranslation(false);
+          toast("Translation applied!");
+        }}
+      />
     </Modal>
   );
 }

@@ -48,6 +48,7 @@ export type Post = {
   published_at?: string
   status: PostStatus
   channels?: string[]
+  channelContents?: Record<string, { text: string; images?: ImageObject[] }>
   schedule_date?: string
   schedule_time?: string
 }

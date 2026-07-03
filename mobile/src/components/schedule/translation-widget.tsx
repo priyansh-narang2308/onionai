@@ -31,6 +31,7 @@ const LANGUAGES = [
   { code: "mr", name: "Marathi" },
   { code: "gu", name: "Gujarati" },
   { code: "bn", name: "Bengali" },
+  { code: "pa", name: "Punjabi" },
 ];
 
 export function TranslationWidget({

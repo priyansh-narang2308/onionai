@@ -6,8 +6,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  Modal,
   ActivityIndicator,
   Platform,
   Alert,
@@ -15,27 +13,28 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, parse, set } from "date-fns";
+import { format } from "date-fns";
 import { fetchWithAuth } from "../../lib/api";
 import {
   Calendar as CalendarIcon,
   List,
   Plus,
-  X,
   Clock,
   FileText,
-  CheckCircle,
   Send,
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
-import { DatePicker } from "../../components/schedule/date-picker";
+import { CreatePostDialog } from "../../components/schedule/create-post-dialog";
+import { EditPostDialog } from "../../components/schedule/edit-post-dialog";
 
 interface ScheduledPost {
   id: string;
   content: string;
   scheduled_at: string;
-  status: string;
+  status: "draft" | "queue" | "published" | "failed";
   images: any[];
+  channels?: string[];
+  channelContents?: Record<string, { text: string; images?: any[] }>;
   user_channels: {
     id: string;
     channel_type_id: string;
@@ -71,15 +70,11 @@ export default function ScheduleTab() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
-  const [composerText, setComposerText] = useState("");
-  const [selectedChannelTypeId, setSelectedChannelTypeId] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(
     null,
   );
-  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
-  const [translating, setTranslating] = useState(false);
 
   const { data: ideasData } = useQuery({
     queryKey: ["ideas"],
@@ -113,40 +108,6 @@ export default function ScheduleTab() {
     ]);
   };
 
-  const handleTranslate = async (langCode: string, langName: string) => {
-    const text = isComposerOpen ? composerText : editingPost?.content;
-    if (!text?.trim()) {
-      toast("Please enter text to translate", "error");
-      return;
-    }
-
-    setTranslating(true);
-    try {
-      const res = await fetchWithAuth(
-        "/api/sarvam/translate",
-        {
-          method: "POST",
-          body: JSON.stringify({ text, targetLanguage: langCode }),
-        },
-        getToken,
-      );
-      if (res && res.translatedText) {
-        if (isComposerOpen) {
-          setComposerText(res.translatedText);
-        } else if (editingPost) {
-          setEditingPost((prev) =>
-            prev ? { ...prev, content: res.translatedText } : null,
-          );
-        }
-        toast(`Translated to ${langName}`);
-      }
-    } catch (err: any) {
-      toast(err.message || "Translation failed", "error");
-    } finally {
-      setTranslating(false);
-    }
-  };
-
   const {
     data: postsData,
     isLoading,
@@ -178,60 +139,6 @@ export default function ScheduleTab() {
   const activeChannels = channels.filter((c: any) => c.connected);
   const totals: Record<string, number> = totalsData || {};
 
-  const createPostMutation = useMutation({
-    mutationFn: (payload: {
-      posts: { channelTypeId: string; content: string }[];
-      scheduledAt: string;
-      ideaId?: string | null;
-    }) =>
-      fetchWithAuth(
-        "/api/post",
-        { method: "POST", body: JSON.stringify(payload) },
-        getToken,
-      ),
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["post-totals"] });
-      setIsComposerOpen(false);
-      setComposerText("");
-      toast(`${data.posts?.length || 1} post(s) scheduled`);
-    },
-    onError: (err: any) => {
-      toast(err.message || "Failed to schedule post", "error");
-    },
-  });
-
-  const updatePostMutation = useMutation({
-    mutationFn: (payload: {
-      id: string;
-      content: string;
-      scheduledAt?: string;
-      status?: string;
-    }) =>
-      fetchWithAuth(
-        `/api/post/${payload.id}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            content: payload.content,
-            scheduledAt: payload.scheduledAt,
-            status: payload.status,
-          }),
-        },
-        getToken,
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["post-totals"] });
-      setIsEditOpen(false);
-      setEditingPost(null);
-      toast("Post updated");
-    },
-    onError: (err: any) => {
-      toast(err.message || "Failed to update post", "error");
-    },
-  });
-
   const publishNowMutation = useMutation({
     mutationFn: (postId: string) =>
       fetchWithAuth(
@@ -249,60 +156,9 @@ export default function ScheduleTab() {
     },
   });
 
-  const handleOpenComposer = () => {
-    if (activeChannels.length === 0) {
-      toast("Connect a channel in Settings first", "error");
-      return;
-    }
-    setSelectedChannelTypeId(activeChannels[0].id);
-    setSelectedDate(new Date());
-    setSelectedTime("");
-    setSelectedIdeaId(null);
-    setIsComposerOpen(true);
-  };
-
-  const handleSchedulePost = () => {
-    if (!composerText.trim()) {
-      toast("Content is required", "error");
-      return;
-    }
-    if (!selectedChannelTypeId) {
-      toast("Select a channel", "error");
-      return;
-    }
-    if (!selectedTime) {
-      toast("Select a time", "error");
-      return;
-    }
-
-    const parsedTime = parse(selectedTime, "h:mm a", new Date());
-    const scheduleAt = set(selectedDate, {
-      hours: parsedTime.getHours(),
-      minutes: parsedTime.getMinutes(),
-      seconds: 0,
-      milliseconds: 0,
-    });
-
-    createPostMutation.mutate({
-      posts: [
-        { channelTypeId: selectedChannelTypeId, content: composerText.trim() },
-      ],
-      scheduledAt: scheduleAt.toISOString(),
-      ideaId: selectedIdeaId,
-    });
-  };
-
   const handleEditPost = (post: ScheduledPost) => {
     setEditingPost(post);
     setIsEditOpen(true);
-  };
-
-  const handleUpdatePost = () => {
-    if (!editingPost) return;
-    updatePostMutation.mutate({
-      id: editingPost.id,
-      content: editingPost.content,
-    });
   };
 
   const handlePublishNow = (postId: string) => {
@@ -624,360 +480,32 @@ export default function ScheduleTab() {
         </ScrollView>
       )}
 
-      <TouchableOpacity onPress={handleOpenComposer} style={styles.fabBtn}>
+      <TouchableOpacity
+        onPress={() => {
+          if (activeChannels.length === 0) {
+            toast("Connect a channel in Settings first", "error");
+            return;
+          }
+          setIsComposerOpen(true);
+        }}
+        style={styles.fabBtn}
+      >
         <Plus color="#ffffff" size={24} strokeWidth={3} />
       </TouchableOpacity>
 
-      <Modal visible={isComposerOpen} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>New Post</Text>
-              <TouchableOpacity onPress={() => setIsComposerOpen(false)}>
-                <X color="#71717a" size={20} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              style={styles.modalFormScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={styles.label}>Channel</Text>
-              <View style={styles.channelRowSelector}>
-                {activeChannels.map((chan: any) => (
-                  <TouchableOpacity
-                    key={chan.id}
-                    onPress={() => setSelectedChannelTypeId(chan.id)}
-                    style={[
-                      styles.channelSelectBadge,
-                      selectedChannelTypeId === chan.id &&
-                        styles.channelSelectBadgeActive,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.avatarDot,
-                        { backgroundColor: chan.color || "#84cc16" },
-                      ]}
-                    />
-                    <Text style={styles.channelSelectText}>{chan.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+      <CreatePostDialog
+        visible={isComposerOpen}
+        onClose={() => setIsComposerOpen(false)}
+      />
 
-              {ideas.length > 0 && (
-                <>
-                  <Text style={styles.label}>Link to Idea</Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}
-                  >
-                    {ideas.map((idea: any) => (
-                      <TouchableOpacity
-                        key={idea.id}
-                        onPress={() => {
-                          setSelectedIdeaId(idea.id);
-                          setComposerText(
-                            (
-                              idea.title +
-                              "\n\n" +
-                              (idea.description || "")
-                            ).trim(),
-                          );
-                          toast("Idea loaded!");
-                        }}
-                        style={{
-                          paddingHorizontal: 12,
-                          paddingVertical: 8,
-                          borderRadius: 12,
-                          backgroundColor:
-                            selectedIdeaId === idea.id ? "#84cc16" : "#f4f4f5",
-                          borderWidth: 1,
-                          borderColor:
-                            selectedIdeaId === idea.id ? "#84cc16" : "#e4e4e7",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: "700",
-                            color:
-                              selectedIdeaId === idea.id
-                                ? "#ffffff"
-                                : "#3f3f46",
-                          }}
-                        >
-                          {idea.title}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </>
-              )}
-
-              <Text style={styles.label}>Content</Text>
-              <View style={styles.inputAreaCard}>
-                <TextInput
-                  style={styles.composerInput}
-                  placeholder="Write your post..."
-                  placeholderTextColor="#cbd5e1"
-                  value={composerText}
-                  onChangeText={setComposerText}
-                  multiline
-                  numberOfLines={4}
-                />
-                <View style={styles.inputMeta}>
-                  <Text style={styles.charCountText}>
-                    {composerText.length} chars
-                  </Text>
-                </View>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{
-                  flexDirection: "row",
-                  gap: 8,
-                  marginTop: 8,
-                  marginBottom: 12,
-                }}
-              >
-                {translating ? (
-                  <ActivityIndicator
-                    size="small"
-                    color="#84cc16"
-                    style={{ marginHorizontal: 10 }}
-                  />
-                ) : (
-                  <>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: "600",
-                        color: "#71717a",
-                        alignSelf: "center",
-                        marginRight: 6,
-                      }}
-                    >
-                      Translate:
-                    </Text>
-                    {[
-                      { code: "hi-IN", name: "Hindi" },
-                      { code: "ta-IN", name: "Tamil" },
-                      { code: "te-IN", name: "Telugu" },
-                      { code: "kn-IN", name: "Kannada" },
-                      { code: "ml-IN", name: "Malayalam" },
-                      { code: "bn-IN", name: "Bengali" },
-                    ].map((lang) => (
-                      <TouchableOpacity
-                        key={lang.code}
-                        onPress={() => handleTranslate(lang.code, lang.name)}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          borderRadius: 12,
-                          backgroundColor: "#f4f4f5",
-                          borderWidth: 1,
-                          borderColor: "#e4e4e7",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: "700",
-                            color: "#3f3f46",
-                          }}
-                        >
-                          {lang.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </>
-                )}
-              </ScrollView>
-              <Text style={styles.label}>Schedule</Text>
-              <DatePicker
-                date={selectedDate}
-                onDateChange={setSelectedDate}
-                time={selectedTime}
-                onTimeChange={setSelectedTime}
-              />
-            </ScrollView>
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                onPress={handleSchedulePost}
-                style={styles.scheduleActionBtn}
-                disabled={createPostMutation.isPending}
-              >
-                {createPostMutation.isPending ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : (
-                  <>
-                    <CheckCircle color="#ffffff" size={16} />
-                    <Text style={styles.scheduleActionBtnText}>Schedule</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={isEditOpen} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Post</Text>
-              <TouchableOpacity onPress={() => setIsEditOpen(false)}>
-                <X color="#71717a" size={20} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              style={styles.modalFormScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={styles.label}>Content</Text>
-              <View style={styles.inputAreaCard}>
-                <TextInput
-                  style={styles.composerInput}
-                  placeholder="Edit your post..."
-                  placeholderTextColor="#cbd5e1"
-                  value={editingPost?.content || ""}
-                  onChangeText={(text) =>
-                    setEditingPost((prev) =>
-                      prev ? { ...prev, content: text } : null,
-                    )
-                  }
-                  multiline
-                  numberOfLines={4}
-                />
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{
-                  flexDirection: "row",
-                  gap: 8,
-                  marginTop: 8,
-                  marginBottom: 12,
-                }}
-              >
-                {translating ? (
-                  <ActivityIndicator
-                    size="small"
-                    color="#84cc16"
-                    style={{ marginHorizontal: 10 }}
-                  />
-                ) : (
-                  <>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        color: "#71717a",
-                        alignSelf: "center",
-                        marginRight: 6,
-                      }}
-                    >
-                      Translate:
-                    </Text>
-                    {[
-                      { code: "hi-IN", name: "Hindi" },
-                      { code: "ta-IN", name: "Tamil" },
-                      { code: "te-IN", name: "Telugu" },
-                      { code: "kn-IN", name: "Kannada" },
-                      { code: "ml-IN", name: "Malayalam" },
-                      { code: "bn-IN", name: "Bengali" },
-                    ].map((lang) => (
-                      <TouchableOpacity
-                        key={lang.code}
-                        onPress={() => handleTranslate(lang.code, lang.name)}
-                        style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          borderRadius: 12,
-                          backgroundColor: "#f4f4f5",
-                          borderWidth: 1,
-                          borderColor: "#e4e4e7",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: "700",
-                            color: "#3f3f46",
-                          }}
-                        >
-                          {lang.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </>
-                )}
-              </ScrollView>
-
-              {editingPost?.status === "queue" && (
-                <TouchableOpacity
-                  onPress={() => handlePublishNow(editingPost.id)}
-                  style={styles.publishNowLargeBtn}
-                >
-                  <Send color="#ffffff" size={16} />
-                  <Text style={styles.publishNowLargeBtnText}>Publish Now</Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
-            <View
-              style={[
-                styles.modalFooter,
-                { flexDirection: "row", justifyContent: "space-between" },
-              ]}
-            >
-              <TouchableOpacity
-                onPress={() => editingPost && handleDeletePost(editingPost.id)}
-                disabled={deletePostMutation.isPending}
-                style={[
-                  styles.scheduleActionBtn,
-                  {
-                    backgroundColor: "#fef2f2",
-                    borderColor: "#fca5a5",
-                    marginRight: 8,
-                    flex: 0.35,
-                  },
-                ]}
-              >
-                {deletePostMutation.isPending ? (
-                  <ActivityIndicator color="#ef4444" size="small" />
-                ) : (
-                  <Text
-                    style={[styles.scheduleActionBtnText, { color: "#ef4444" }]}
-                  >
-                    Delete
-                  </Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleUpdatePost}
-                style={[styles.scheduleActionBtn, { flex: 0.65 }]}
-                disabled={updatePostMutation.isPending}
-              >
-                {updatePostMutation.isPending ? (
-                  <ActivityIndicator color="#ffffff" size="small" />
-                ) : (
-                  <>
-                    <CheckCircle color="#ffffff" size={16} />
-                    <Text style={styles.scheduleActionBtnText}>
-                      Save Changes
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <EditPostDialog
+        visible={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setEditingPost(null);
+        }}
+        post={editingPost}
+      />
     </SafeAreaView>
   );
 }

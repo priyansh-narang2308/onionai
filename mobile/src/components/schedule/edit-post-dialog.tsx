@@ -1,6 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from "react-native"
-import { X, Send, Trash2, Check } from "lucide-react-native"
+import { X, Send, Trash2, Check, ChevronDown } from "lucide-react-native"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/clerk-expo"
 import { Post } from "../../types/post.type"
@@ -18,32 +18,62 @@ type Props = {
 }
 
 export function EditPostDialog({ visible, onClose, post }: Props) {
-  const [content, setContent] = useState(post?.content || "")
-  const [selectedChannels, setSelectedChannels] = useState<string[]>(post?.channels || [])
-  const [scheduleDate, setScheduleDate] = useState(post?.scheduled_at ? post.scheduled_at.substring(0, 10) : "")
-  const [scheduleTime, setScheduleTime] = useState(post?.scheduled_at ? post.scheduled_at.substring(11, 16) : "")
+  const [globalContent, setGlobalContent] = useState("")
+  const [perChannelContent, setPerChannelContent] = useState<Record<string, string>>({})
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([])
+  const [expandedChannel, setExpandedChannel] = useState<string | null>(null)
+  const [scheduleDate, setScheduleDate] = useState("")
+  const [scheduleTime, setScheduleTime] = useState("")
   const [saving, setSaving] = useState(false)
   const [showAI, setShowAI] = useState(false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { getToken } = useAuth()
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (post) {
-      /* eslint-disable react-hooks/set-state-in-effect */
-      setContent(post.content)
+      setGlobalContent(post.content)
       setSelectedChannels(post.channels || [])
       setScheduleDate(post.scheduled_at ? post.scheduled_at.substring(0, 10) : "")
       setScheduleTime(post.scheduled_at ? post.scheduled_at.substring(11, 16) : "")
-      /* eslint-enable react-hooks/set-state-in-effect */
+      if (post.channelContents) {
+        const flat: Record<string, string> = {}
+        Object.entries(post.channelContents).forEach(([key, val]) => {
+          flat[key] = val.text
+        })
+        setPerChannelContent(flat)
+      }
     }
   }, [post])
 
+  const getChannelContent = (channelType: string): string => {
+    return perChannelContent[channelType] ?? globalContent
+  }
+
+  const setChannelContent = (channelType: string, text: string) => {
+    if (text === globalContent) {
+      const newContent = { ...perChannelContent }
+      delete newContent[channelType]
+      setPerChannelContent(newContent)
+    } else {
+      setPerChannelContent((prev) => ({ ...prev, [channelType]: text }))
+    }
+  }
+
   const handleSave = async () => {
-    if (!post || !content.trim()) return
+    if (!post || !globalContent.trim()) return
     setSaving(true)
     try {
-      const body: Record<string, unknown> = { content, channels: selectedChannels }
+      const channelContents: Record<string, { text: string }> = {}
+      selectedChannels.forEach((ch) => {
+        channelContents[ch] = { text: getChannelContent(ch) }
+      })
+
+      const body: Record<string, unknown> = {
+        content: globalContent,
+        channels: selectedChannels,
+        channelContents,
+      }
       if (scheduleDate) body.scheduled_at = `${scheduleDate}T${scheduleTime || "09:00"}:00`
 
       const resp = await fetchWithAuth(`/api/post?id=${post.id}`, {
@@ -105,9 +135,6 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
   if (!post) return null
 
   const channels = CHANNEL_PLATFORMS
-  const charLimit = selectedChannels.length > 0
-    ? Math.min(...selectedChannels.map(ch => getChannelInfo(ch)?.character_limit || Infinity))
-    : null
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -120,7 +147,7 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={{ gap: 16, paddingBottom: 20 }}>
+          <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={{ gap: 16, paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
             {/* Status badge */}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{
@@ -157,28 +184,108 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
               ))}
             </View>
 
-            <ContentTextarea
-              value={content}
-              onChange={setContent}
-              minHeight={200}
-              placeholder="Edit your content..."
-              showAIAssistant
-              onAIAssistantClick={() => setShowAI(!showAI)}
-            />
-            {charLimit && (
-              <Text style={{
-                fontSize: 11, fontWeight: "600", alignSelf: "flex-end",
-                color: content.length > charLimit ? "#ef4444" : "#a1a1aa",
-              }}>
-                {content.length}/{charLimit}
+            {/* Global Content */}
+            <View>
+              <Text style={{ fontSize: 11, fontWeight: "600", color: "#52525b", marginBottom: 6 }}>
+                Content (shared across channels)
               </Text>
-            )}
+              <ContentTextarea
+                value={globalContent}
+                onChange={setGlobalContent}
+                minHeight={140}
+                placeholder="Edit your content..."
+                showAIAssistant
+                onAIAssistantClick={() => setShowAI(!showAI)}
+              />
+            </View>
+
+            {/* Per-channel editors */}
+            {selectedChannels.length > 1 &&
+              selectedChannels.map((ch) => {
+                const info = getChannelInfo(ch)
+                const chContent = getChannelContent(ch)
+                const isCustom = perChannelContent[ch] !== undefined
+                const overLimit = chContent.length > (info?.character_limit || Infinity)
+
+                return (
+                  <View
+                    key={ch}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: expandedChannel === ch ? info?.color + "40" : "#f4f4f5",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => setExpandedChannel(expandedChannel === ch ? null : ch)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        paddingHorizontal: 14,
+                        paddingVertical: 10,
+                        backgroundColor: isCustom ? "#fafafa" : "#ffffff",
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: info?.color }} />
+                        <Text style={{ fontSize: 12, fontWeight: "700", color: "#09090b" }}>{info?.name}</Text>
+                        {isCustom && (
+                          <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: "#f4f5f0" }}>
+                            <Text style={{ fontSize: 8, fontWeight: "800", color: "#4d7c0f" }}>CUSTOM</Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <Text style={{ fontSize: 10, fontWeight: "600", color: overLimit ? "#ef4444" : "#a1a1aa" }}>
+                          {chContent.length}
+                          {info?.character_limit ? `/${info.character_limit}` : ""}
+                        </Text>
+                        <ChevronDown color="#a1a1aa" size={14} style={{ transform: [{ rotate: expandedChannel === ch ? "180deg" : "0deg" }] }} />
+                      </View>
+                    </TouchableOpacity>
+                    {expandedChannel === ch && (
+                      <View style={{ paddingHorizontal: 14, paddingBottom: 12 }}>
+                        <TextInput
+                          style={{
+                            backgroundColor: "#fafafa",
+                            borderWidth: 1,
+                            borderColor: "#e4e4e7",
+                            borderRadius: 10,
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                            fontSize: 13,
+                            color: "#09090b",
+                            minHeight: 80,
+                            textAlignVertical: "top",
+                          }}
+                          value={chContent}
+                          onChangeText={(text) => setChannelContent(ch, text)}
+                          placeholder={`Customize for ${info?.name}...`}
+                          placeholderTextColor="#a1a1aa"
+                          multiline
+                        />
+                        <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 4 }}>
+                          <TouchableOpacity onPress={() => {
+                            const newContent = { ...perChannelContent }
+                            delete newContent[ch]
+                            setPerChannelContent(newContent)
+                          }}>
+                            <Text style={{ fontSize: 10, color: "#71717a", fontWeight: "600" }}>Reset to global</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )
+              })}
 
             {showAI && (
-              <AIAssistant content={content} onContentChange={setContent} onClose={() => setShowAI(false)} />
+              <AIAssistant content={globalContent} onContentChange={setGlobalContent} onClose={() => setShowAI(false)} />
             )}
 
-            <PreviewPanel content={content} selectedChannels={selectedChannels} />
+            <PreviewPanel content={globalContent} selectedChannels={selectedChannels} perChannelContent={perChannelContent} />
 
             <View style={{ flexDirection: "row", gap: 12 }}>
               <View style={{ flex: 1 }}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,16 @@ import {
   Switch,
   ActivityIndicator,
   Image,
+  Linking,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import * as Clipboard from "expo-clipboard";
 import { fetchWithAuth } from "../../lib/api";
 import {
   Settings,
@@ -25,9 +29,16 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Bug,
+  ExternalLink,
+  Copy,
+  Trash2,
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
 import { ChannelType } from "../../types/channel.type";
+
+const DARK_MODE_KEY = "onionai_dark_mode";
+const SANDBOX_MODE_KEY = "onionai_sandbox_mode";
 
 export default function SettingsTab() {
   const router = useRouter();
@@ -39,6 +50,43 @@ export default function SettingsTab() {
     "profile" | "channels" | "appearance"
   >("channels");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSandboxMode, setIsSandboxMode] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [dark, sandbox] = await Promise.all([
+          AsyncStorage.getItem(DARK_MODE_KEY),
+          AsyncStorage.getItem(SANDBOX_MODE_KEY),
+        ]);
+        if (dark !== null) setIsDarkMode(dark === "true");
+        if (sandbox !== null) setIsSandboxMode(sandbox === "true");
+      } catch {
+        // ignore
+      } finally {
+        setSettingsLoaded(true);
+      }
+    })();
+  }, []);
+
+  const toggleDarkMode = async (value: boolean) => {
+    setIsDarkMode(value);
+    try {
+      await AsyncStorage.setItem(DARK_MODE_KEY, String(value));
+    } catch {
+      // ignore
+    }
+  };
+
+  const toggleSandboxMode = async (value: boolean) => {
+    setIsSandboxMode(value);
+    try {
+      await AsyncStorage.setItem(SANDBOX_MODE_KEY, String(value));
+    } catch {
+      // ignore
+    }
+  };
 
   const {
     data: channelsData,
@@ -74,7 +122,13 @@ export default function SettingsTab() {
     mutationFn: (channelTypeId: string) =>
       fetchWithAuth(
         "/api/channel/connect",
-        { method: "POST", body: JSON.stringify({ channelTypeId }) },
+        {
+          method: "POST",
+          body: JSON.stringify({
+            channelTypeId,
+            ...(isSandboxMode ? { sandbox: true } : {}),
+          }),
+        },
         getToken,
       ),
     onSuccess: async ({ url }: { url: string }) => {
@@ -210,8 +264,30 @@ export default function SettingsTab() {
                 <View style={styles.profileDetailsList}>
                   <View style={styles.detailItem}>
                     <Text style={styles.detailKey}>User ID</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      <Text style={styles.detailVal} numberOfLines={1}>
+                        {user.id}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          Clipboard.setStringAsync(user.id);
+                          toast("User ID copied");
+                        }}
+                      >
+                        <Copy color="#71717a" size={14} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailKey}>Email</Text>
                     <Text style={styles.detailVal} numberOfLines={1}>
-                      {user.id}
+                      {user.primaryEmailAddress?.emailAddress || "N/A"}
                     </Text>
                   </View>
                   <View style={styles.detailItem}>
@@ -223,6 +299,51 @@ export default function SettingsTab() {
                     </Text>
                   </View>
                 </View>
+
+                {/* Account Management */}
+                <View style={styles.accountActions}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const url = `https://clerk.com/user/${user.id}`;
+                      Linking.openURL(url).catch(() =>
+                        toast("Could not open account manager"),
+                      );
+                    }}
+                    style={styles.accountActionBtn}
+                  >
+                    <ExternalLink color="#71717a" size={16} />
+                    <Text style={styles.accountActionText}>Manage Account</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Alert.alert(
+                        "Delete Account",
+                        "Are you sure you want to delete your account? This action cannot be undone.",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Delete",
+                            style: "destructive",
+                            onPress: () =>
+                              toast(
+                                "Account deletion is handled via web dashboard",
+                              ),
+                          },
+                        ],
+                      );
+                    }}
+                    style={styles.accountActionBtn}
+                  >
+                    <Trash2 color="#ef4444" size={16} />
+                    <Text
+                      style={[styles.accountActionText, { color: "#ef4444" }]}
+                    >
+                      Delete Account
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.divider} />
                 <TouchableOpacity
                   onPress={handleSignOut}
                   style={styles.signOutButton}
@@ -262,6 +383,25 @@ export default function SettingsTab() {
                   <RefreshCw color="#71717a" size={18} />
                 )}
               </TouchableOpacity>
+            </View>
+
+            {/* Sandbox Mode Toggle */}
+            <View style={styles.sandboxCard}>
+              <View style={styles.sandboxHeader}>
+                <Bug color={isSandboxMode ? "#84cc16" : "#71717a"} size={18} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.sandboxLabel}>Sandbox Mode</Text>
+                  <Text style={styles.sandboxDesc}>
+                    Mock OAuth connections for development testing
+                  </Text>
+                </View>
+                <Switch
+                  value={isSandboxMode}
+                  onValueChange={toggleSandboxMode}
+                  trackColor={{ false: "#e4e4e7", true: "#d9f99d" }}
+                  thumbColor={isSandboxMode ? "#84cc16" : "#a1a1aa"}
+                />
+              </View>
             </View>
 
             {isLoadingChannels && !isRefetching ? (
@@ -403,7 +543,7 @@ export default function SettingsTab() {
                 </View>
                 <Switch
                   value={isDarkMode}
-                  onValueChange={setIsDarkMode}
+                  onValueChange={toggleDarkMode}
                   trackColor={{ false: "#e4e4e7", true: "#d9f99d" }}
                   thumbColor={isDarkMode ? "#84cc16" : "#a1a1aa"}
                 />
@@ -625,6 +765,45 @@ const styles = StyleSheet.create({
     color: "#ef4444",
   },
   channelBtnTextConnect: { fontSize: 12, fontWeight: "700", color: "#ffffff" },
+  sandboxCard: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 20,
+  },
+  sandboxHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sandboxLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#09090b",
+  },
+  sandboxDesc: {
+    fontSize: 11,
+    color: "#71717a",
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  accountActions: {
+    gap: 8,
+    marginBottom: 20,
+  },
+  accountActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  accountActionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#71717a",
+  },
   appearanceCard: {
     backgroundColor: "#ffffff",
     borderWidth: 1,

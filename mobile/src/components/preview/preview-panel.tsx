@@ -23,9 +23,10 @@ type Props = {
   content: string
   images?: ImageObject[]
   selectedChannels: string[]
+  perChannelContent?: Record<string, string>
 }
 
-export function PreviewPanel({ content, images, selectedChannels }: Props) {
+export function PreviewPanel({ content, images, selectedChannels, perChannelContent = {} }: Props) {
   const channels = selectedChannels.length > 0 ? selectedChannels : Object.keys(previewMap)
 
   return (
@@ -38,10 +39,11 @@ export function PreviewPanel({ content, images, selectedChannels }: Props) {
           const info = previewMap[ch]
           if (!info) return null
           const { Component } = info
+          const channelContent = perChannelContent[ch] ?? content
           return (
             <View key={ch} style={{ minWidth: 300 }}>
               <Text style={{ fontSize: 11, fontWeight: "600", color: "#71717a", textTransform: "uppercase", marginBottom: 8 }}>{info.label}</Text>
-              <Component content={content} images={images} />
+              <Component content={channelContent} images={images} />
             </View>
           )
         })}

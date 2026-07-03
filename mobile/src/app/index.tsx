@@ -626,6 +626,20 @@ export default function Index() {
                 </View>
               </View>
             )}
+
+            {/* Footer links */}
+            <View style={styles.authFooter}>
+              <Text style={styles.authFooterText}>
+                By continuing, you agree to our{" "}
+                <Text style={styles.authFooterLink} onPress={() => {}}>
+                  Terms
+                </Text>{" "}
+                and{" "}
+                <Text style={styles.authFooterLink} onPress={() => {}}>
+                  Privacy Policy
+                </Text>
+              </Text>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -962,5 +976,21 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
     marginBottom: 24,
+  },
+  authFooter: {
+    alignItems: "center",
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  authFooterText: {
+    fontSize: 11,
+    color: "#a1a1aa",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  authFooterLink: {
+    color: "#71717a",
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
 });
