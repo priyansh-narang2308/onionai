@@ -127,7 +127,6 @@ export function AIAssistant({
 
       <p className="mb-3 text-sm font-medium">How can I help with this post?</p>
 
-      {/* Textarea for custom prompt */}
       <div className="flex flex-col gap-2">
         <Textarea
           value={prompt}
@@ -179,7 +178,6 @@ export function AIAssistant({
         </div>
       )}
 
-      {/* Footer */}
       <p className="mt-auto pt-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           Pro tips: Add context for better results

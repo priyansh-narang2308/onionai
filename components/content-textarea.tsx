@@ -198,22 +198,28 @@ const ContentTextarea = ({
                   <SmileIcon className="h-4.5 w-4.5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="start" className="w-[300px] p-0!">
+              <PopoverContent
+                side="top"
+                align="start"
+                sideOffset={8}
+                collisionPadding={16}
+                className="w-[310px] p-0! z-[99999] shadow-2xl border border-border/80 rounded-xl overflow-hidden"
+              >
                 <EmojiPicker
                   onEmojiSelect={insertEmoji}
                   className="w-full! rounded-lg bg-popover ring-0!"
                   emojisPerRow={6}
-                  emojiSize={36}
+                  emojiSize={34}
                 >
-                  <EmojiPicker.Header className="border-b border-border pb-2">
+                  <EmojiPicker.Header className="border-b border-border pb-2 px-2 pt-2">
                     <EmojiPicker.Input
                       placeholder="Search emoji"
                       autoFocus
-                      className="h-8 border border-border! bg-background ring-0!"
+                      className="h-8 border border-border! bg-background ring-0! rounded-md text-sm px-2.5"
                     />
                   </EmojiPicker.Header>
                   <EmojiPicker.Group>
-                    <EmojiPicker.List hideStickyHeader containerHeight={320} />
+                    <EmojiPicker.List hideStickyHeader containerHeight={240} />
                   </EmojiPicker.Group>
                 </EmojiPicker>
               </PopoverContent>

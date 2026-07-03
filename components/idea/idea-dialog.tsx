@@ -73,7 +73,7 @@ const IdeaDialog = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          `flex max-h-[90vh] gap-0 overflow-hidden p-0 sm:w-[95%] sm:min-w-[550px]`,
+          `flex flex-col max-h-[90vh] gap-0 overflow-hidden p-0 sm:w-[95%] sm:min-w-[550px]`,
           showAI && "sm:max-w-[900px]",
         )}
       >

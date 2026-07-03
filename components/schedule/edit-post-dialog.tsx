@@ -178,12 +178,12 @@ export function EditPostDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "sm:w-full sm:min-w-[700px] gap-0 px-0 pt-0 pb-0!",
+          "sm:w-full sm:min-w-[700px] max-h-[90vh] flex flex-col gap-0 px-0 pt-0 pb-0 overflow-hidden bg-background/95 backdrop-blur-md border border-border/60 shadow-2xl rounded-2xl transition-all duration-300",
           selectedRightTab && "sm:max-w-[950px]",
         )}
       >
-        <div>
-          <DialogHeader className="px-8 py-4 border-b">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogHeader className="shrink-0 px-8 py-4 border-b">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-semibold">
                 Edit Post
@@ -208,7 +208,7 @@ export function EditPostDialog({
           <DialogDescription />
 
           {/* ── Main panel ── */}
-          <div className="w-full flex flex-1 h-full min-h-[550px] max-h-[570px] ">
+          <div className="w-full flex flex-1 min-h-0 overflow-hidden min-h-[380px]">
             {/* Left panel */}
             <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
               <section
@@ -301,7 +301,7 @@ export function EditPostDialog({
           </div>
         </div>
 
-        <DialogFooter className="px-8 pt-4 pb-4 m-0!">
+        <DialogFooter className="shrink-0 px-8 pt-4 pb-4 m-0! border-t border-border/40 bg-muted/20">
           <div className="w-full flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Button

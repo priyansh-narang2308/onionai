@@ -349,12 +349,12 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "sm:w-full sm:min-w-[700px] gap-0 px-0 pt-0 pb-0 overflow-hidden bg-background/95 backdrop-blur-md border border-border/60 shadow-2xl rounded-2xl transition-all duration-300",
+          "sm:w-full sm:min-w-[700px] max-h-[90vh] flex flex-col gap-0 px-0 pt-0 pb-0 overflow-hidden bg-background/95 backdrop-blur-md border border-border/60 shadow-2xl rounded-2xl transition-all duration-300",
           selectedRightTab && "sm:max-w-[950px]",
         )}
       >
-        <div>
-          <DialogHeader className="px-8 py-3.5 border-b border-border/50 bg-linear-to-r from-background to-muted/10">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogHeader className="shrink-0 px-8 py-3.5 border-b border-border/50 bg-linear-to-r from-background to-muted/10">
             <div className="flex items-center justify-between">
               <DialogTitle className="font-semibold text-lg tracking-tight text-foreground/90">
                 Create Post
@@ -391,7 +391,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
             </div>
           </DialogHeader>
 
-          <div className="w-full flex flex-1 min-w-0 overflow-hidden h-[580px]">
+          <div className="w-full flex flex-1 min-h-0 overflow-hidden min-h-[380px]">
             {/* Left — channel list */}
             <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
               <div className="channel--selector py-5 px-8 border-b border-border/40 bg-muted/5">
@@ -718,7 +718,7 @@ dark:text-amber-400"
           </div>
         </div>
 
-        <DialogFooter className="px-8 pt-4 pb-5 m-0! border-t border-border/40 bg-muted/20">
+        <DialogFooter className="shrink-0 px-8 pt-4 pb-5 m-0! border-t border-border/40 bg-muted/20">
           {hasConnectedChannel ? (
             <div className="w-full flex items-center justify-between gap-2">
               <Button
