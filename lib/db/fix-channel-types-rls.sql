@@ -21,6 +21,16 @@ CREATE POLICY "idea_groups_auth_read" ON public.idea_groups
   FOR SELECT
   TO authenticated
   USING (true);
-
-
-  
+-- Harden system.on_schema_ddl() SECURITY DEFINER function
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'system' AND p.proname = 'on_schema_ddl'
+  ) THEN
+    REVOKE EXECUTE ON FUNCTION system.on_schema_ddl() FROM public;
+    ALTER FUNCTION system.on_schema_ddl() SET search_path = '';
+  END IF;
+END
+$$;
