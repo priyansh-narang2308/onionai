@@ -9,22 +9,55 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useSignIn, useSignUp, useOAuth, useAuth } from "@clerk/clerk-expo";
+import Svg, { Path } from "react-native-svg";
 import * as WebBrowser from "expo-web-browser";
 
 // Complete OAuth session if redirected back
 WebBrowser.maybeCompleteAuthSession();
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const GoogleLogo = () => (
+  <Svg width="20" height="20" viewBox="0 0 48 48">
+    <Path
+      fill="#FFC107"
+      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+    <Path
+      fill="#FF3D00"
+      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+    />
+    <Path
+      fill="#4CAF50"
+      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+    />
+    <Path
+      fill="#1976D2"
+      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+  </Svg>
+);
 
 type ScreenState = "onboarding" | "auth";
 
 export default function Index() {
   const router = useRouter();
   const { isSignedIn, isLoaded: isAuthLoaded } = useAuth();
-  const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
-  const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+  const {
+    isLoaded: isSignInLoaded,
+    signIn,
+    setActive: setSignInActive,
+  } = useSignIn();
+  const {
+    isLoaded: isSignUpLoaded,
+    signUp,
+    setActive: setSignUpActive,
+  } = useSignUp();
 
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
 
@@ -70,7 +103,9 @@ export default function Index() {
       }
     } catch (err: unknown) {
       console.error("Google OAuth error:", err);
-      alert(err instanceof Error ? err.message : "Failed to log in with Google");
+      alert(
+        err instanceof Error ? err.message : "Failed to log in with Google",
+      );
     } finally {
       setLoading(false);
     }
@@ -100,7 +135,10 @@ export default function Index() {
       }
     } catch (err: unknown) {
       console.error("Sign-in error:", err);
-      const message = err instanceof Error ? err.message : "Authentication failed. Check your credentials.";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Authentication failed. Check your credentials.";
       alert(message);
     } finally {
       setLoading(false);
@@ -125,7 +163,8 @@ export default function Index() {
       setVerificationStep(true);
     } catch (err: unknown) {
       console.error("Sign-up error:", err);
-      const message = err instanceof Error ? err.message : "Registration failed.";
+      const message =
+        err instanceof Error ? err.message : "Registration failed.";
       alert(message);
     } finally {
       setLoading(false);
@@ -155,7 +194,8 @@ export default function Index() {
       }
     } catch (err: unknown) {
       console.error("Verification error:", err);
-      const message = err instanceof Error ? err.message : "Verification code is incorrect.";
+      const message =
+        err instanceof Error ? err.message : "Verification code is incorrect.";
       alert(message);
     } finally {
       setLoading(false);
@@ -170,17 +210,64 @@ export default function Index() {
         desc: "A clutter-free social workstation optimized for design and absolute focus. Say goodbye to messy enterprise scheduling tables.",
         illustration: (
           <View style={styles.onionContainer}>
-            <View style={[styles.onionLayer, { width: 140, height: 140, borderRadius: 70, borderColor: "#e4e4e7" }]}>
-              <View style={[styles.onionLayer, { width: 110, height: 110, borderRadius: 55, borderColor: "#a3e635" }]}>
-                <View style={[styles.onionLayer, { width: 80, height: 80, borderRadius: 40, borderColor: "#84cc16" }]}>
-                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#84cc16", alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#ffffff", fontWeight: "bold", fontSize: 16 }}>ON</Text>
+            <View
+              style={[
+                styles.onionLayer,
+                {
+                  width: 140,
+                  height: 140,
+                  borderRadius: 70,
+                  borderColor: "#e4e4e7",
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.onionLayer,
+                  {
+                    width: 110,
+                    height: 110,
+                    borderRadius: 55,
+                    borderColor: "#a3e635",
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.onionLayer,
+                    {
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      borderColor: "#84cc16",
+                    },
+                  ]}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: "#84cc16",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#ffffff",
+                        fontWeight: "bold",
+                        fontSize: 16,
+                      }}
+                    >
+                      ON
+                    </Text>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        )
+        ),
       },
       {
         title: "Single Composer, Native Feeds",
@@ -188,48 +275,108 @@ export default function Index() {
         illustration: (
           <View style={styles.onionContainer}>
             <View style={styles.mockChannelGrid}>
-              <View style={[styles.mockChannelCard, { transform: [{ rotate: "-4deg" }] }]}>
-                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#18181b" }}>X / Twitter</Text>
+              <View
+                style={[
+                  styles.mockChannelCard,
+                  { transform: [{ rotate: "-4deg" }] },
+                ]}
+              >
+                <Text
+                  style={{ fontSize: 11, fontWeight: "bold", color: "#18181b" }}
+                >
+                  X / Twitter
+                </Text>
                 <View style={styles.mockLine} />
                 <View style={[styles.mockLine, { width: "70%" }]} />
               </View>
-              <View style={[styles.mockChannelCard, { zIndex: 10, borderColor: "#84cc16", shadowColor: "#84cc16", shadowOpacity: 0.1 }]}>
-                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#84cc16" }}>LinkedIn</Text>
+              <View
+                style={[
+                  styles.mockChannelCard,
+                  {
+                    zIndex: 10,
+                    borderColor: "#84cc16",
+                    shadowColor: "#84cc16",
+                    shadowOpacity: 0.1,
+                  },
+                ]}
+              >
+                <Text
+                  style={{ fontSize: 11, fontWeight: "bold", color: "#84cc16" }}
+                >
+                  LinkedIn
+                </Text>
                 <View style={styles.mockLine} />
                 <View style={[styles.mockLine, { width: "85%" }]} />
               </View>
-              <View style={[styles.mockChannelCard, { transform: [{ rotate: "4deg" }] }]}>
-                <Text style={{ fontSize: 11, fontWeight: "bold", color: "#71717a" }}>Instagram</Text>
+              <View
+                style={[
+                  styles.mockChannelCard,
+                  { transform: [{ rotate: "4deg" }] },
+                ]}
+              >
+                <Text
+                  style={{ fontSize: 11, fontWeight: "bold", color: "#71717a" }}
+                >
+                  Instagram
+                </Text>
                 <View style={styles.mockLine} />
                 <View style={[styles.mockLine, { width: "60%" }]} />
               </View>
             </View>
           </View>
-        )
+        ),
       },
       {
         title: "Optimal Hour Dispatches",
         desc: "Plan and enqueue your drafts. Our automated queue engine evaluates profile audiences to release content exactly during peak activity windows.",
         illustration: (
           <View style={styles.onionContainer}>
-            <View style={{ width: 180, height: 100, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
+            <View
+              style={{
+                width: 180,
+                height: 100,
+                flexDirection: "row",
+                alignItems: "flex-end",
+                gap: 8,
+              }}
+            >
               {[30, 60, 45, 90, 75, 40, 85].map((h, i) => (
-                <View key={i} style={{ flex: 1, backgroundColor: "#f4f4f5", height: 100, justifyContent: "flex-end", borderRadius: 4 }}>
-                  <View style={{ height: `${h}%`, backgroundColor: i === 3 ? "#84cc16" : "#cbd5e1", borderRadius: 4 }} />
+                <View
+                  key={i}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#f4f4f5",
+                    height: 100,
+                    justifyContent: "flex-end",
+                    borderRadius: 4,
+                  }}
+                >
+                  <View
+                    style={{
+                      height: `${h}%`,
+                      backgroundColor: i === 3 ? "#84cc16" : "#cbd5e1",
+                      borderRadius: 4,
+                    }}
+                  />
                 </View>
               ))}
             </View>
           </View>
-        )
-      }
+        ),
+      },
     ];
 
     const currentSlide = slides[onboardingIndex];
 
     return (
-      <SafeAreaView style={styles.onboardingContainer} edges={["top", "bottom", "left", "right"]}>
+      <SafeAreaView
+        style={styles.onboardingContainer}
+        edges={["top", "bottom", "left", "right"]}
+      >
         <View style={styles.onboardingHeader}>
-          <Text style={styles.logoText}>onion<Text style={{ color: "#84cc16" }}>.ai</Text></Text>
+          <Text style={styles.logoText}>
+            onion<Text style={{ color: "#84cc16" }}>.ai</Text>
+          </Text>
           <TouchableOpacity onPress={() => setScreenState("auth")}>
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
@@ -249,7 +396,7 @@ export default function Index() {
                 key={idx}
                 style={[
                   styles.dotItem,
-                  idx === onboardingIndex ? styles.dotActive : null
+                  idx === onboardingIndex ? styles.dotActive : null,
                 ]}
               />
             ))}
@@ -294,153 +441,191 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <SafeAreaView style={styles.authContainer} edges={["top", "bottom", "left", "right"]}>
-          <ScrollView contentContainerStyle={styles.authScroll}>
-            {/* Branding */}
+        <SafeAreaView
+          style={styles.authContainer}
+          edges={["top", "bottom", "left", "right"]}
+        >
+          <ScrollView
+            contentContainerStyle={styles.authScroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.authBranding}>
-              <View style={styles.logoBadge}>
-                <Text style={styles.logoBadgeText}>ON</Text>
-              </View>
-              <Text style={styles.logoMainText}>onion<Text style={{ color: "#84cc16" }}>.ai</Text></Text>
-              <Text style={styles.authSubText}>Write once. Schedule platform-native.</Text>
+              <Text style={styles.logoMainText}>
+                onion<Text style={{ color: "#84cc16" }}>.ai</Text>
+              </Text>
+              <Text style={styles.authSubText}>
+                Write once. Schedule platform-native.
+              </Text>
             </View>
 
-            {/* Light Themed Auth Card */}
-            <View style={styles.authCard}>
-              {verificationStep ? (
-                // Email Verification Code Panel
-                <View>
-                  <Text style={styles.authCardTitle}>Verify Email</Text>
-                  <Text style={styles.verificationPrompt}>
-                    {"We've sent a validation code to your email. Please enter it below to activate your account."}
-                  </Text>
-                  
-                  <View style={styles.formGroup}>
-                    <Text style={styles.label}>Verification Code</Text>
-                    <TextInput
-                      style={[
-                        styles.inputField,
-                        codeFocused ? styles.inputFocused : null
-                      ]}
-                      placeholder="Enter 6-digit code"
-                      placeholderTextColor="#a1a1aa"
-                      value={verificationCode}
-                      onChangeText={setVerificationCode}
-                      onFocus={() => setCodeFocused(true)}
-                      onBlur={() => setCodeFocused(false)}
-                      keyboardType="number-pad"
-                      autoCapitalize="none"
-                    />
+            {verificationStep ? (
+              <View style={styles.authCard}>
+                <View style={styles.verificationIconContainer}>
+                  <View style={styles.verificationIconInner}>
+                    <Text style={styles.verificationIconText}>✉</Text>
                   </View>
-
-                  <TouchableOpacity
-                    onPress={handleVerify}
-                    style={styles.submitButton}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#ffffff" size="small" />
-                    ) : (
-                      <Text style={styles.submitButtonText}>Verify & Continue</Text>
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => setVerificationStep(false)}
-                    style={styles.toggleTextButton}
-                  >
-                    <Text style={styles.toggleText}>Back to Sign Up</Text>
-                  </TouchableOpacity>
                 </View>
-              ) : (
-                // Sign In / Sign Up Form Panel
-                <View>
-                  <Text style={styles.authCardTitle}>
-                    {isLogin ? "Welcome Back" : "Create Account"}
+                <Text style={styles.authCardTitle}>Check your email</Text>
+                <Text style={styles.verificationPrompt}>
+                  We sent a verification code to{"\n"}
+                  <Text style={{ fontWeight: "600", color: "#09090b" }}>
+                    {email}
                   </Text>
+                </Text>
 
-                  {/* Standard Continue with Google OAuth Button */}
-                  <TouchableOpacity
-                    onPress={handleGoogleLogin}
-                    style={styles.googleOAuthButton}
-                    disabled={loading}
-                  >
-                    <View style={styles.googleIconPlaceholder}>
-                      <Text style={styles.googleLetter}>G</Text>
-                    </View>
-                    <Text style={styles.googleOAuthButtonText}>
-                      Continue with Google
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Verification Code</Text>
+                  <TextInput
+                    style={[
+                      styles.inputField,
+                      styles.codeInput,
+                      codeFocused ? styles.inputFocused : null,
+                    ]}
+                    placeholder="000000"
+                    placeholderTextColor="#d4d4d8"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    onFocus={() => setCodeFocused(true)}
+                    onBlur={() => setCodeFocused(false)}
+                    keyboardType="number-pad"
+                    autoCapitalize="none"
+                    maxLength={6}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleVerify}
+                  style={[
+                    styles.submitButton,
+                    verificationCode.length < 6 && styles.submitButtonDisabled,
+                  ]}
+                  disabled={loading || verificationCode.length < 6}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>
+                      Verify & Continue
                     </Text>
-                  </TouchableOpacity>
+                  )}
+                </TouchableOpacity>
 
-                  <View style={styles.orSeparatorContainer}>
-                    <View style={styles.separatorLine} />
-                    <Text style={styles.orText}>OR</Text>
-                    <View style={styles.separatorLine} />
-                  </View>
-                  
-                  <View style={styles.formGroup}>
-                    <Text style={styles.label}>Email Address</Text>
-                    <TextInput
-                      style={[
-                        styles.inputField,
-                        emailFocused ? styles.inputFocused : null
-                      ]}
-                      placeholder="Enter email"
-                      placeholderTextColor="#a1a1aa"
-                      value={email}
-                      onChangeText={setEmail}
-                      onFocus={() => setEmailFocused(true)}
-                      onBlur={() => setEmailFocused(false)}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                    />
-                  </View>
+                <TouchableOpacity
+                  onPress={() => setVerificationStep(false)}
+                  style={styles.toggleTextButton}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.toggleText}>← Back to sign up</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              // Sign In / Sign Up Form Panel
+              <View style={styles.authCard}>
+                <Text style={styles.authCardTitle}>
+                  {isLogin ? "Welcome back" : "Create your account"}
+                </Text>
 
-                  <View style={styles.formGroup}>
-                    <Text style={styles.label}>Password</Text>
-                    <TextInput
-                      style={[
-                        styles.inputField,
-                        passwordFocused ? styles.inputFocused : null
-                      ]}
-                      placeholder="Enter password"
-                      placeholderTextColor="#a1a1aa"
-                      value={password}
-                      onChangeText={setPassword}
-                      onFocus={() => setPasswordFocused(true)}
-                      onBlur={() => setPasswordFocused(false)}
-                      secureTextEntry
-                    />
-                  </View>
+                {/* Google OAuth Button */}
+                <TouchableOpacity
+                  onPress={handleGoogleLogin}
+                  style={styles.googleOAuthButton}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  <GoogleLogo />
+                  <Text style={styles.googleOAuthButtonText}>
+                    Continue with Google
+                  </Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={isLogin ? handleSignIn : handleSignUp}
-                    style={styles.submitButton}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="#ffffff" size="small" />
-                    ) : (
-                      <Text style={styles.submitButtonText}>
-                        {isLogin ? "Authenticate" : "Register Now"}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
+                {/* Divider */}
+                <View style={styles.orSeparatorContainer}>
+                  <View style={styles.separatorLine} />
+                  <Text style={styles.orText}>or</Text>
+                  <View style={styles.separatorLine} />
+                </View>
 
+                {/* Email */}
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={[
+                      styles.inputField,
+                      emailFocused ? styles.inputFocused : null,
+                    ]}
+                    placeholder="name@example.com"
+                    placeholderTextColor="#a1a1aa"
+                    value={email}
+                    onChangeText={setEmail}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
+
+                {/* Password */}
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Password</Text>
+                  <TextInput
+                    style={[
+                      styles.inputField,
+                      passwordFocused ? styles.inputFocused : null,
+                    ]}
+                    placeholder={
+                      isLogin ? "Enter your password" : "Create a password"
+                    }
+                    placeholderTextColor="#a1a1aa"
+                    value={password}
+                    onChangeText={setPassword}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                    secureTextEntry
+                    autoComplete={isLogin ? "password" : "new-password"}
+                  />
+                </View>
+
+                {/* Submit */}
+                <TouchableOpacity
+                  onPress={isLogin ? handleSignIn : handleSignUp}
+                  style={[
+                    styles.submitButton,
+                    (!email.trim() || !password.trim()) &&
+                      styles.submitButtonDisabled,
+                  ]}
+                  disabled={loading || !email.trim() || !password.trim()}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>
+                      {isLogin ? "Sign in" : "Create account"}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Toggle */}
+                <View style={styles.toggleContainer}>
+                  <Text style={styles.togglePrefix}>
+                    {isLogin
+                      ? "Don't have an account?"
+                      : "Already have an account?"}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => setIsLogin(!isLogin)}
-                    style={styles.toggleTextButton}
+                    activeOpacity={0.7}
                   >
-                    <Text style={styles.toggleText}>
-                      {isLogin 
-                        ? "New to Onion AI? Register here" 
-                        : "Already have an account? Sign in"}
+                    <Text style={styles.toggleLink}>
+                      {isLogin ? "Sign up" : "Sign in"}
                     </Text>
                   </TouchableOpacity>
                 </View>
-              )}
-            </View>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -593,28 +778,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   authScroll: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     paddingBottom: 40,
     justifyContent: "center",
     flexGrow: 1,
   },
   authBranding: {
     alignItems: "center",
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: 36,
+    marginTop: SCREEN_WIDTH > 400 ? 40 : 20,
   },
   logoBadge: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: "#09090b",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 14,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    marginBottom: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   logoBadgeText: {
     color: "#84cc16",
@@ -622,14 +807,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   logoMainText: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
     color: "#09090b",
     letterSpacing: -0.5,
   },
   authSubText: {
     fontSize: 13,
-    color: "#71717a",
+    color: "#a1a1aa",
     marginTop: 6,
     fontWeight: "500",
   },
@@ -637,20 +822,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#f4f4f5",
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 24,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
   },
   authCardTitle: {
     fontSize: 20,
     fontWeight: "700",
     color: "#09090b",
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: "center",
+    letterSpacing: -0.3,
   },
   googleOAuthButton: {
     flexDirection: "row",
@@ -660,45 +841,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e4e4e7",
     borderRadius: 14,
-    paddingVertical: 12,
-    marginBottom: 15,
-  },
-  googleIconPlaceholder: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#f4f4f5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  googleLetter: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#4285f4",
+    paddingVertical: 13,
+    marginBottom: 20,
+    gap: 10,
   },
   googleOAuthButtonText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#18181b",
   },
   orSeparatorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    marginBottom: 20,
     justifyContent: "center",
   },
   separatorLine: {
     flex: 1,
-    height: 0.5,
-    backgroundColor: "#e4e4e7",
+    height: 1,
+    backgroundColor: "#f4f4f5",
   },
   orText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#a1a1aa",
-    marginHorizontal: 10,
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#d4d4d8",
+    marginHorizontal: 12,
+    textTransform: "lowercase",
   },
   formGroup: {
     marginBottom: 16,
@@ -706,57 +874,93 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#09090b",
+    color: "#52525b",
     marginBottom: 6,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   inputField: {
-    backgroundColor: "#f4f4f5",
+    backgroundColor: "#fafafa",
     borderWidth: 1,
     borderColor: "#e4e4e7",
     borderRadius: 14,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
+    paddingVertical: 13,
+    fontSize: 15,
     color: "#09090b",
   },
   inputFocused: {
-    borderColor: "#84cc16",
+    borderColor: "#09090b",
     backgroundColor: "#ffffff",
   },
+  codeInput: {
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 8,
+    paddingVertical: 16,
+  },
   submitButton: {
-    backgroundColor: "#84cc16",
+    backgroundColor: "#09090b",
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 15,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
-    shadowColor: "#84cc16",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 8,
+  },
+  submitButtonDisabled: {
+    opacity: 0.4,
   },
   submitButtonText: {
     color: "#ffffff",
     fontWeight: "700",
     fontSize: 15,
+    letterSpacing: 0.2,
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    gap: 4,
+  },
+  togglePrefix: {
+    fontSize: 13,
+    color: "#a1a1aa",
+    fontWeight: "500",
+  },
+  toggleLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#09090b",
   },
   toggleTextButton: {
-    marginTop: 16,
+    marginTop: 20,
     alignItems: "center",
   },
   toggleText: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#71717a",
-    fontWeight: "600",
+    fontWeight: "500",
+  },
+  verificationIconContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  verificationIconInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#f4f4f5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  verificationIconText: {
+    fontSize: 22,
   },
   verificationPrompt: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#71717a",
-    lineHeight: 18,
+    lineHeight: 20,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 24,
   },
 });

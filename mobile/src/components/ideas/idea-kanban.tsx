@@ -63,7 +63,8 @@ export function IdeaKanban({ ideas, onSelectIdea, onDeleteIdea }: Props) {
       setAddingTo(null);
       toast("Idea created!", "success");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to create idea";
+      const message =
+        err instanceof Error ? err.message : "Failed to create idea";
       toast(message, "error");
     } finally {
       setCreating(false);
