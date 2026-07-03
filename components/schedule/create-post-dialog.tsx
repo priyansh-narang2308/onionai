@@ -391,7 +391,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
             </div>
           </DialogHeader>
 
-          <div className="w-full flex flex-1 min-h-0 overflow-hidden min-h-[380px]">
+          <div className="w-full flex flex-1 overflow-hidden min-h-[380px]">
             {/* Left — channel list */}
             <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
               <div className="channel--selector py-5 px-8 border-b border-border/40 bg-muted/5">

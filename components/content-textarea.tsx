@@ -203,7 +203,7 @@ const ContentTextarea = ({
                 align="start"
                 sideOffset={8}
                 collisionPadding={16}
-                className="w-[310px] p-0! z-[99999] shadow-2xl border border-border/80 rounded-xl overflow-hidden"
+                className="w-[310px] p-0! z-99999 shadow-2xl border border-border/80 rounded-xl overflow-hidden"
               >
                 <EmojiPicker
                   onEmojiSelect={insertEmoji}
