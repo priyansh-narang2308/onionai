@@ -30,7 +30,6 @@ BEGIN
     WHERE n.nspname = 'system' AND p.proname = 'on_schema_ddl'
   ) THEN
     REVOKE EXECUTE ON FUNCTION system.on_schema_ddl() FROM public;
-    ALTER FUNCTION system.on_schema_ddl() SET search_path = '';
   END IF;
 END
 $$;
