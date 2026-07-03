@@ -393,7 +393,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
 
           <div className="w-full flex flex-1 overflow-hidden min-h-[380px]">
             {/* Left — channel list */}
-            <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
+            <div className="flex flex-1 flex-col min-w-0 w-[300px] justify-between overflow-y-auto">
               <div className="channel--selector py-5 px-8 border-b border-border/40 bg-muted/5">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
@@ -509,7 +509,6 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                               onTranslate={(translated) =>
                                 handleGlobalContentChange(translated)
                               }
-                              disabled={!hasConnectedChannel}
                             />
                           </div>
                         }
@@ -606,7 +605,6 @@ dark:text-amber-400"
                                   minHeight={260}
                                   contentClass="text-sm placeholder:opacity-50 pt-0"
                                   showAIAssistant={true}
-                                  disabled={!channel.connected}
                                   onAIAssistantClick={() => {
                                     setSelectedRightTab("ai");
                                   }}
@@ -637,7 +635,6 @@ dark:text-amber-400"
                                             channel.character_limit,
                                           )
                                         }
-                                        disabled={!channel.connected}
                                       />
                                       <span
                                         className={cn(
@@ -664,6 +661,71 @@ dark:text-amber-400"
                   </Accordion>
                 )}
               </div>
+
+              <DialogFooter className="shrink-0 px-8 pt-4 pb-5 m-0! border-t border-border/40 bg-muted/20">
+                {hasConnectedChannel ? (
+                  <div className="w-full flex items-center justify-between gap-2">
+                    <Button
+                      size="lg"
+                      variant="ghost"
+                      disabled={createPostMutation.isPending}
+                      onClick={() => handleCreatePost(POST_STATUS.DRAFT)}
+                      className="cursor-pointer"
+                    >
+                      {createPostMutation.isPending &&
+                        createPostMutation.variables.status ===
+                          POST_STATUS.DRAFT && <Spinner />}
+                      Save Draft
+                    </Button>
+                    <ButtonGroup className="p-0!">
+                      <ScheduleDatePicker
+                        date={date}
+                        setDate={setDate}
+                        time={timeSlot}
+                        setTime={setTimeSlot}
+                        renderButton={(isDatePassed, isTimeNotAvailable) => (
+                          <Button
+                            size="lg"
+                            className="border py-4.5 px-4 cursor-pointer"
+                            disabled={
+                              createPostMutation.isPending ||
+                              !date ||
+                              !timeSlot ||
+                              isDatePassed ||
+                              isTimeNotAvailable
+                            }
+                            onClick={() => {
+                              if (isDatePassed || isTimeNotAvailable) {
+                                toast.error(
+                                  "Please select a valid date and time",
+                                );
+                                return;
+                              }
+                              handleCreatePost();
+                            }}
+                          >
+                            {createPostMutation.isPending &&
+                              createPostMutation.variables.status ===
+                                undefined && <Spinner />}
+                            Schedule Post
+                          </Button>
+                        )}
+                      />
+                    </ButtonGroup>
+                  </div>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="group/btn px-6 py-5.5 rounded-xl font-semibold shadow-lg hover:shadow-primary/10 hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary text-primary-foreground flex items-center gap-2 cursor-pointer"
+                    asChild
+                  >
+                    <Link href="/settings">
+                      Connect Channel to Post
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                )}
+              </DialogFooter>
             </div>
 
             {/* Right — channel preview */}
@@ -673,7 +735,7 @@ dark:text-amber-400"
             bg-muted/30 h-full
             "
               >
-                <div className="py-4 flex-1 flex flex-col h-full">
+                <div className="py-4 flex-1 flex flex-col h-full overflow-y-auto">
                   {selectedRightTab === "ai" && (
                     <div className="px-6">
                       <AIAssistant
@@ -717,71 +779,6 @@ dark:text-amber-400"
             )}
           </div>
         </div>
-
-        <DialogFooter className="shrink-0 px-8 pt-4 pb-5 m-0! border-t border-border/40 bg-muted/20">
-          {hasConnectedChannel ? (
-            <div className="w-full flex items-center justify-between gap-2">
-              <Button
-                size="lg"
-                variant="ghost"
-                disabled={createPostMutation.isPending}
-                onClick={() => handleCreatePost(POST_STATUS.DRAFT)}
-                className="cursor-pointer"
-              >
-                {createPostMutation.isPending &&
-                  createPostMutation.variables.status === POST_STATUS.DRAFT && (
-                    <Spinner />
-                  )}
-                Save Draft
-              </Button>
-              <ButtonGroup className="p-0!">
-                <ScheduleDatePicker
-                  date={date}
-                  setDate={setDate}
-                  time={timeSlot}
-                  setTime={setTimeSlot}
-                  renderButton={(isDatePassed, isTimeNotAvailable) => (
-                    <Button
-                      size="lg"
-                      className="border py-4.5 px-4 cursor-pointer"
-                      disabled={
-                        createPostMutation.isPending ||
-                        !date ||
-                        !timeSlot ||
-                        isDatePassed ||
-                        isTimeNotAvailable
-                      }
-                      onClick={() => {
-                        if (isDatePassed || isTimeNotAvailable) {
-                          toast.error("Please select a valid date and time");
-                          return;
-                        }
-                        handleCreatePost();
-                      }}
-                    >
-                      {createPostMutation.isPending &&
-                        createPostMutation.variables.status === undefined && (
-                          <Spinner />
-                        )}
-                      Schedule Post
-                    </Button>
-                  )}
-                />
-              </ButtonGroup>
-            </div>
-          ) : (
-            <Button
-              size="lg"
-              className="group/btn px-6 py-5.5 rounded-xl font-semibold shadow-lg hover:shadow-primary/10 hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary text-primary-foreground flex items-center gap-2 cursor-pointer"
-              asChild
-            >
-              <Link href="/settings">
-                Connect Channel to Post
-                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
-              </Link>
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

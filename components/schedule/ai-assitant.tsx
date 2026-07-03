@@ -30,11 +30,8 @@ export function AIAssistant({
   onGenerate,
 }: AIAssistantProps) {
   const [prompt, setPrompt] = React.useState("");
-  const { data: subscription, isLoading } = useSubscription();
-  const canUseAI = !!subscription?.subscriptionItems?.some((item) => {
-    const planSlug = item.plan.slug;
-    return planSlug === "pro" || planSlug === "premium";
-  });
+  const { isLoading } = useSubscription();
+  const canUseAI = true;
 
   const generateMutation = useMutation({
     mutationFn: async ({

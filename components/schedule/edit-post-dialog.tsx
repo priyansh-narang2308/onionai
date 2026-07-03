@@ -221,7 +221,7 @@ export function EditPostDialog({
           {/* ── Main panel ── */}
           <div className="w-full flex flex-1 overflow-hidden min-h-[380px]">
             {/* Left panel */}
-            <div className="flex flex-1 flex-col min-w-0 w-[300px] pb-5">
+            <div className="flex flex-1 flex-col min-w-0 w-[300px] justify-between overflow-y-auto">
               <section
                 className="channel--composer relative 
                     flex flex-col px-8 mt-5 min-h-[300px] 
@@ -254,7 +254,6 @@ export function EditPostDialog({
                             <TranslationWidget
                               text={content}
                               onTranslate={setContent}
-                              disabled={!channel?.connected}
                             />
                             <span
                               className={cn(
@@ -276,6 +275,95 @@ export function EditPostDialog({
                   </div>
                 </div>
               </section>
+
+              <DialogFooter className="shrink-0 px-8 pt-4 pb-4 m-0! border-t border-border/40 bg-muted/20">
+                <div className="w-full flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={() => handleUpdate(POST_STATUS.DRAFT)}
+                      disabled={updatePostMutation.isPending}
+                    >
+                      {updatePostMutation.isPending &&
+                        updatePostMutation.variables?.status ===
+                          POST_STATUS.DRAFT && <Spinner />}
+                      Save Draft
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="lg"
+                          disabled={deletePostMutation.isPending}
+                          className="cursor-pointer"
+                        >
+                          {deletePostMutation.isPending && <Spinner />}
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this post? This
+                            action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="cursor-pointer">
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            variant="destructive"
+                            className="cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => {
+                              if (post) {
+                                deletePostMutation.mutate(post.id);
+                              }
+                            }}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                  <ButtonGroup className="p-0!">
+                    <ScheduleDatePicker
+                      date={date}
+                      setDate={setDate}
+                      time={time}
+                      setTime={setTime}
+                      renderButton={(isDatePassed, isTimeNotAvailable) => (
+                        <Button
+                          size="lg"
+                          className="border py-4.5 px-4"
+                          onClick={() => {
+                            if (isDatePassed || isTimeNotAvailable) {
+                              toast.error("Please select a valid time");
+                              return;
+                            }
+                            handleUpdate();
+                          }}
+                          disabled={
+                            updatePostMutation.isPending ||
+                            !date ||
+                            !time ||
+                            isTimeNotAvailable ||
+                            isDatePassed
+                          }
+                        >
+                          {updatePostMutation.isPending &&
+                            updatePostMutation.variables?.status ===
+                              undefined && <Spinner />}
+                          Schedule Post
+                        </Button>
+                      )}
+                    />
+                  </ButtonGroup>
+                </div>
+              </DialogFooter>
             </div>
 
             {/* Right Side Panel */}
@@ -284,7 +372,7 @@ export function EditPostDialog({
                 className="w-[350px] shrink-0 border-l border-border 
                                   bg-muted/30 h-full flex flex-col"
               >
-                <div className="py-4 flex-1 h-full flex flex-col">
+                <div className="py-4 flex-1 h-full flex flex-col overflow-y-auto">
                   {selectedRightTab === "ai" && (
                     <div className="px-6 flex flex-col">
                       <AIAssistant
@@ -311,93 +399,6 @@ export function EditPostDialog({
             )}
           </div>
         </div>
-
-        <DialogFooter className="shrink-0 px-8 pt-4 pb-4 m-0! border-t border-border/40 bg-muted/20">
-          <div className="w-full flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => handleUpdate(POST_STATUS.DRAFT)}
-                disabled={updatePostMutation.isPending}
-              >
-                {updatePostMutation.isPending &&
-                  updatePostMutation.variables?.status ===
-                    POST_STATUS.DRAFT && <Spinner />}
-                Save Draft
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    size="lg"
-                    disabled={deletePostMutation.isPending}
-                    className="cursor-pointer"
-                  >
-                    {deletePostMutation.isPending && <Spinner />}
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Post</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this post? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      className="cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => {
-                        if (post) {
-                          deletePostMutation.mutate(post.id);
-                        }
-                      }}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-            <ButtonGroup className="p-0!">
-              <ScheduleDatePicker
-                date={date}
-                setDate={setDate}
-                time={time}
-                setTime={setTime}
-                renderButton={(isDatePassed, isTimeNotAvailable) => (
-                  <Button
-                    size="lg"
-                    className="border py-4.5 px-4"
-                    onClick={() => {
-                      if (isDatePassed || isTimeNotAvailable) {
-                        toast.error("Please select a valid time");
-                        return;
-                      }
-                      handleUpdate();
-                    }}
-                    disabled={
-                      updatePostMutation.isPending ||
-                      !date ||
-                      !time ||
-                      isTimeNotAvailable ||
-                      isDatePassed
-                    }
-                  >
-                    {updatePostMutation.isPending &&
-                      updatePostMutation.variables?.status === undefined && (
-                        <Spinner />
-                      )}
-                    Schedule Post
-                  </Button>
-                )}
-              />
-            </ButtonGroup>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

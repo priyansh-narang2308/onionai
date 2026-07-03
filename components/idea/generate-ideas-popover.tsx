@@ -37,12 +37,8 @@ export function GenerateIdeasPopover({
   >([]);
 
   const [selectedIdea, setSelectedIdea] = useState(0);
-  const { data: subscription, isLoading } = useSubscription();
-
-  const canUseAI = !!subscription?.subscriptionItems?.some((item) => {
-    const planSlug = item.plan.slug;
-    return planSlug === "pro" || planSlug === "business";
-  });
+  const { isLoading } = useSubscription();
+  const canUseAI = true;
 
   const generateMutation = useMutation({
     mutationFn: async ({

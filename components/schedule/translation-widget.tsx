@@ -37,7 +37,7 @@ export function TranslationWidget({
   const [loading, setLoading] = useState(false);
 
   const handleTranslate = async (langCode: string, langName: string) => {
-    if (!text.trim()) {
+    if (!text || !text.trim()) {
       toast.error("Please enter some text to translate");
       return;
     }
@@ -83,7 +83,7 @@ export function TranslationWidget({
         <Button
           variant="outline"
           size="sm"
-          disabled={disabled || loading || !text.trim()}
+          disabled={disabled || loading || !text || !text.trim()}
           className={className}
         >
           {loading ? (

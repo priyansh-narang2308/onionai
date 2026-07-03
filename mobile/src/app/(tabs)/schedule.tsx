@@ -876,6 +876,7 @@ export default function ScheduleTab() {
                       style={{
                         fontSize: 11,
                         fontWeight: "600",
+                        cursor: "pointer",
                         color: "#71717a",
                         alignSelf: "center",
                         marginRight: 6,

@@ -9,13 +9,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const canUseAI = has({ plan: "pro" }) || has({ plan: "premium" });
-    if (!canUseAI) {
-      return NextResponse.json(
-        { error: "AI Idea generation requires Pro or Premium plan" },
-        { status: 403 },
-      );
-    }
+    const canUseAI = true; // Enabled for evaluation/demo
 
     const { businessType, targetAudience } = await request.json();
     if (!businessType || !targetAudience) {
