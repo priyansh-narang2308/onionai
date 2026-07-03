@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getGraphData } from "@/lib/neo4j";
 import { getInsforgeServerClient } from "@/lib/insforge-server";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     console.error("Error in graph API route:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch graph data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

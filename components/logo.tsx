@@ -24,7 +24,7 @@ const OnionIcon = () => {
 const Logo = ({ className, hideName = false }: LogoProps) => {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-950 shadow-md">
+      <div className={cn("flex items-center justify-center rounded-xl bg-zinc-950 shadow-md shrink-0", hideName ? "h-8 w-8 scale-90" : "h-10 w-10")}>
         <OnionIcon />
       </div>
 

@@ -245,8 +245,7 @@ export default function GraphPage() {
       <div className="flex justify-between items-center bg-card p-4 rounded-xl border shadow-xs border-border/50">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Network className="size-5 text-lime-500" /> Content Relationship
-            Graph
+            Content Relationship Graph
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Visualize connection threads between your core ideas, scheduled

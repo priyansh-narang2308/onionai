@@ -1,17 +1,23 @@
-"use client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Image from "next/image"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { UserProfile, useUser } from "@clerk/nextjs"
-import { Layers, Palette, User } from "lucide-react"
-import ChannelsTab from "@/components/settings/channels-tab"
-import { useTheme } from "next-themes"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+"use client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserProfile, useUser } from "@clerk/nextjs";
+import { Layers, Palette, User } from "lucide-react";
+import ChannelsTab from "@/components/settings/channels-tab";
+import { useTheme } from "next-themes";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const SettingsPage = () => {
-  const { user } = useUser()
-  const { theme, setTheme } = useTheme()
+  const { user } = useUser();
+  const { theme, setTheme } = useTheme();
   return (
     <div className="w-full">
       <div className="max-w-5xl mx-auto w-full h-full">
@@ -22,28 +28,34 @@ const SettingsPage = () => {
         <div>
           <Tabs defaultValue="channels">
             <div className="mb-6 w-full border-b">
-              <TabsList variant="line" className="w-fit space-x-4
+              <TabsList
+                variant="line"
+                className="w-fit space-x-4
               group-data-horizontal/tabs:h-12 cursor-pointer
-              ">
+              "
+              >
                 <TabsTrigger value="profile" className="cursor-pointer">
                   <User className="size-4" />
-                  Profile</TabsTrigger>
+                  Profile
+                </TabsTrigger>
                 <TabsTrigger value="channels" className="cursor-pointer">
                   <Layers className="size-4" />
-                  Channels</TabsTrigger>
+                  Channels
+                </TabsTrigger>
                 <TabsTrigger value="appearance" className="cursor-pointer">
                   <Palette className="size-4" />
-                  Appearance</TabsTrigger>
+                  Appearance
+                </TabsTrigger>
               </TabsList>
             </div>
 
             <TabsContent value="profile">
               <Card>
                 <CardHeader>
-                  <CardTitle>
-                    Your Profile
-                  </CardTitle>
-                  <CardDescription>Managr youe account information</CardDescription>
+                  <CardTitle>Your Profile</CardTitle>
+                  <CardDescription>
+                    Managr youe account information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4">
@@ -62,8 +74,12 @@ const SettingsPage = () => {
                     )}
 
                     <div>
-                      <p className="font-medium">{user?.fullName || "No name set"}</p>
-                      <p className="text-sm text-muted-foreground">{user?.primaryEmailAddress?.emailAddress}</p>
+                      <p className="font-medium">
+                        {user?.fullName || "No name set"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {user?.primaryEmailAddress?.emailAddress}
+                      </p>
                     </div>
                   </div>
                   <div className="mt-6">
@@ -89,7 +105,9 @@ const SettingsPage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Appearance</CardTitle>
-                  <CardDescription>Customize how Onion AI looks for you</CardDescription>
+                  <CardDescription>
+                    Customize how Onion AI looks for you
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -103,7 +121,9 @@ const SettingsPage = () => {
                       id="theme"
                       className="cursor-pointer"
                       checked={theme === "dark"}
-                      onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                      onCheckedChange={(checked) =>
+                        setTheme(checked ? "dark" : "light")
+                      }
                     />
                   </div>
                 </CardContent>
@@ -113,7 +133,7 @@ const SettingsPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SettingsPage
+export default SettingsPage;
