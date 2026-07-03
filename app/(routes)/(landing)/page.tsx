@@ -9,14 +9,12 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  ChevronRight,
 } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { ChannelTypeEnum, getChannelIcon } from "@/constants/channels";
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 
 const navItems = [
   { label: "Features", href: "#features" },
@@ -36,7 +34,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden">
-      {/* Floating Navbar */}
       <header
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
           isScrolled ? "py-4" : "py-6"
@@ -99,7 +96,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
             <button
               className="md:hidden text-foreground p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -108,7 +104,6 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* Mobile Nav Dropdown */}
           {mobileMenuOpen && (
             <div className="absolute top-full left-6 right-6 mt-4 rounded-3xl border border-border/50 bg-background/95 backdrop-blur-xl p-6 shadow-xl md:hidden flex flex-col gap-6 animate-in slide-in-from-top-4">
               <nav className="flex flex-col gap-4">
@@ -156,11 +151,9 @@ export default function LandingPage() {
       </header>
 
       <main className="pt-32 pb-16">
-        {/* Hero Section */}
         <section className="relative flex flex-col items-center justify-center min-h-[85vh] px-6 text-center">
-          {/* Background effects */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[50vh] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px] mask-[radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[48px_48px] mask-[radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
             <h1 className="text-5xl font-extrabold tracking-tight text-balance sm:text-6xl md:text-8xl bg-clip-text text-transparent bg-linear-to-br from-foreground to-foreground/60 pb-4">
@@ -204,12 +197,9 @@ export default function LandingPage() {
                 </Button>
               )}
             </div>
-
-            {/* Integrations moved to its own section */}
           </div>
         </section>
 
-        {/* Integrations Section */}
         <section id="integrations" className="py-16">
           <div className="mx-auto max-w-5xl px-6 py-8">
             <div className="space-y-8 text-center">
@@ -243,7 +233,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Feature Bento Grid */}
         <section
           id="features"
           className="relative mx-auto max-w-7xl px-6 py-24"
@@ -259,9 +248,8 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 md:grid-rows-2 auto-rows-[320px]">
-            {/* Main Feature */}
             <div className="md:col-span-2 md:row-span-2 rounded-[32px] bg-card border border-border/50 p-10 flex flex-col justify-between overflow-hidden relative group shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
                   <LayoutDashboard className="h-6 w-6 text-primary" />
@@ -276,7 +264,6 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="relative z-10 mt-10 flex-1 w-full bg-muted/50 rounded-t-xl border-x border-t border-border/50 shadow-inner overflow-hidden translate-y-8 group-hover:translate-y-4 transition-transform duration-500">
-                {/* Mockup UI representation */}
                 <div className="h-8 border-b border-border/50 flex items-center px-4 gap-2 bg-background/50">
                   <div className="h-3 w-3 rounded-full bg-red-500/50" />
                   <div className="h-3 w-3 rounded-full bg-yellow-500/50" />
@@ -289,9 +276,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Feature 2 */}
             <div className="rounded-[32px] bg-card border border-border/50 p-8 flex flex-col relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute inset-0 bg-gradient-to-bl from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-linear-to-bl from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6">
                 <Zap className="h-6 w-6 text-amber-500" />
               </div>
@@ -302,9 +288,8 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Feature 3 */}
             <div className="rounded-[32px] bg-card border border-border/50 p-8 flex flex-col relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-linear-to-tr from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
                 <Calendar className="h-6 w-6 text-blue-500" />
               </div>
@@ -317,7 +302,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Stats Section */}
         <section className="border-y border-border/50 bg-muted/20 py-24">
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-border/50">
@@ -338,7 +322,7 @@ export default function LandingPage() {
                 </span>
               </div>
               <div className="flex flex-col items-center text-center pt-8 md:pt-0">
-                <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500 mb-4">
+                <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-primary to-violet-500 mb-4">
                   AI
                 </span>
                 <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">
@@ -349,10 +333,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* CTA Section */}
         <section className="py-32 px-6 text-center">
           <div className="mx-auto max-w-4xl rounded-[3rem] bg-foreground text-background p-12 md:p-20 relative overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-violet-500/20 opacity-50 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-transparent to-violet-500/20 opacity-50 pointer-events-none" />
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance relative z-10">
               Ready to take control?
             </h2>
@@ -371,7 +354,6 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border/50 bg-background py-12">
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
@@ -396,44 +378,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-const IntegrationCard = ({
-  title,
-  description,
-  children,
-  link = "#",
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-  link?: string;
-}) => {
-  return (
-    <Card className="p-6 border-border/50 shadow-sm hover:shadow-md transition-shadow">
-      <div className="relative">
-        <div className="*:size-10">{children}</div>
-
-        <div className="space-y-2 py-6">
-          <h3 className="text-base font-medium">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm">
-            {description}
-          </p>
-        </div>
-
-        <div className="flex gap-3 border-t border-dashed border-border/50 pt-6">
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            className="gap-1 pr-2 shadow-none hover:bg-secondary/80"
-          >
-            <Link href={link}>
-              Learn More
-              <ChevronRight className="ml-0 !size-3.5 opacity-50" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-};
