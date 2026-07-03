@@ -51,12 +51,14 @@ const NODE_COLORS: Record<string, string> = {
   post: "#3b82f6",
   channel: "#10b981",
   platform: "#8b5cf6",
+  tag: "#ec4899",
 };
 const COLOR_LEGEND = [
   { type: "Idea", color: "#f59e0b" },
   { type: "Post (Scheduled)", color: "#3b82f6" },
   { type: "Post (Published)", color: "#10b981" },
   { type: "Channel/Platform", color: "#8b5cf6" },
+  { type: "Topic Cluster", color: "#ec4899" },
 ];
 
 function layoutNodes(
@@ -128,6 +130,11 @@ export function GraphVisualization() {
     queryFn: () => fetchWithAuth("/api/graph", { method: "GET" }, getToken),
   });
 
+  const { data: insights } = useQuery<any>({
+    queryKey: ["graph-insights"],
+    queryFn: () => fetchWithAuth("/api/graph/insights", { method: "GET" }, getToken),
+  });
+
   const nodePositions = useMemo(() => {
     if (!graphData?.nodes) return new Map();
     return layoutNodes(graphData.nodes, graphData.links || []);
@@ -166,9 +173,9 @@ export function GraphVisualization() {
         <View style={styles.headerContent}>
           <Network color="#84cc16" size={24} />
           <View>
-            <Text style={styles.headerTitle}>Content Graph</Text>
+            <Text style={styles.headerTitle}>Neo4j AuraDB Content Graph</Text>
             <Text style={styles.headerSubtitle}>
-              See your content relationships
+              Interactive multi-hop topic relationships
             </Text>
           </View>
         </View>
@@ -329,6 +336,32 @@ export function GraphVisualization() {
             </Text>
             {selectedNode.id && (
               <Text style={styles.detailId}>ID: {selectedNode.id}</Text>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Neo4j Topic Clusters Card */}
+      {insights && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Neo4j Topic Clusters</Text>
+          <View style={{ backgroundColor: "#fdf2f8", borderColor: "#fbcfe8", borderWidth: 1, borderRadius: 14, padding: 14 }}>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: "#be185d", marginBottom: 8 }}>
+              Active Hashtag Nodes
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+              {(insights.topTags || []).map((t: any) => (
+                <View key={t.tag} style={{ backgroundColor: "#ec4899", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                  <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "600" }}>
+                    {t.tag} ({t.count})
+                  </Text>
+                </View>
+              ))}
+            </View>
+            {insights.recommendations?.[0] && (
+              <Text style={{ fontSize: 11, color: "#831843", marginTop: 10, fontStyle: "italic" }}>
+                💡 {insights.recommendations[0].description}
+              </Text>
             )}
           </View>
         </View>

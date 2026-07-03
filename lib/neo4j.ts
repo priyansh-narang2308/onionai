@@ -75,8 +75,25 @@ export async function syncIdeaNode(idea: {
   }
 }
 
+function extractTags(content: string): string[] {
+  const matches = content.match(/#[a-zA-Z0-9_]+/g);
+  if (matches && matches.length > 0) {
+    return Array.from(new Set(matches.map((t) => t.toLowerCase())));
+  }
+  // Auto-detect general domain keywords if no explicit hashtag
+  const keywords = ["ai", "launch", "marketing", "tech", "saas", "design", "growth", "nextjs", "react"];
+  const found: string[] = [];
+  const lower = content.toLowerCase();
+  for (const kw of keywords) {
+    if (lower.includes(kw)) {
+      found.push(`#${kw}`);
+    }
+  }
+  return found.length > 0 ? found : ["#onionai"];
+}
+
 /**
- * Syncs a Post node into Neo4j, establishes relationships to Channel/Platform, and links to Idea if inspired
+ * Syncs a Post node into Neo4j, establishes relationships to Channel/Platform, links to Idea if inspired, and creates hashtag clusters
  */
 export async function syncPostNode(post: {
   id: string;
@@ -139,6 +156,17 @@ export async function syncPostNode(post: {
         postId: post.id,
       });
     }
+
+    // 6. Link Hashtag Cluster nodes
+    const tags = extractTags(post.content);
+    for (const tag of tags) {
+      const tagQuery = `
+        MERGE (t:Tag {name: $tag})
+        MATCH (p:Post {id: $postId})
+        MERGE (p)-[:HAS_TAG]->(t)
+      `;
+      await runCypher(tagQuery, { tag, postId: post.id });
+    }
   } catch (err) {
     console.warn("Neo4j syncPostNode failed, proceeding silently:", err);
   }
@@ -162,7 +190,7 @@ export async function deletePostNode(postId: string) {
 export type GraphNode = {
   id: string;
   label: string;
-  type: "Idea" | "Post" | "Channel" | "PlatformType";
+  type: "Idea" | "Post" | "Channel" | "PlatformType" | "Tag";
   color?: string;
   status?: string;
   content?: string;
@@ -190,11 +218,13 @@ export async function getGraphData(
            OR (n:Post AND n.userId = $userId) 
            OR (n:Channel AND n.userId = $userId)
            OR (n:PlatformType)
+           OR (n:Tag)
         OPTIONAL MATCH (n)-[r]->(m)
         WHERE (m:Idea AND m.userId = $userId) 
            OR (m:Post AND m.userId = $userId) 
            OR (m:Channel AND m.userId = $userId)
            OR (m:PlatformType)
+           OR (m:Tag)
         RETURN n, r, m
       `;
       const result = await runCypher(cypher, { userId });
@@ -211,7 +241,7 @@ export async function getGraphData(
             const properties = nNode.properties;
             const labels = nNode.labels as string[];
             const type = labels[0] as GraphNode["type"];
-            const id = properties.id || properties.type; // PlatformType uses type as ID
+            const id = properties.id || properties.name || properties.type;
             if (id) {
               nodesMap.set(id, {
                 id,
@@ -223,7 +253,7 @@ export async function getGraphData(
                     ? properties.content.substring(0, 20) + "..."
                     : "Post"),
                 type,
-                color: properties.color,
+                color: type === "Tag" ? "#ec4899" : properties.color,
                 status: properties.status,
                 content: properties.content || properties.description,
               });
@@ -234,7 +264,7 @@ export async function getGraphData(
             const properties = mNode.properties;
             const labels = mNode.labels as string[];
             const type = labels[0] as GraphNode["type"];
-            const id = properties.id || properties.type;
+            const id = properties.id || properties.name || properties.type;
             if (id) {
               nodesMap.set(id, {
                 id,
@@ -246,7 +276,7 @@ export async function getGraphData(
                     ? properties.content.substring(0, 20) + "..."
                     : "Post"),
                 type,
-                color: properties.color,
+                color: type === "Tag" ? "#ec4899" : properties.color,
                 status: properties.status,
                 content: properties.content || properties.description,
               });
@@ -254,8 +284,8 @@ export async function getGraphData(
           }
 
           if (rRel && nNode && mNode) {
-            const nId = nNode.properties.id || nNode.properties.type;
-            const mId = mNode.properties.id || mNode.properties.type;
+            const nId = nNode.properties.id || nNode.properties.name || nNode.properties.type;
+            const mId = mNode.properties.id || mNode.properties.name || mNode.properties.type;
             links.push({
               source: nId,
               target: mId,
@@ -285,6 +315,7 @@ export async function getGraphData(
   try {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
+    const addedTags = new Set<string>();
 
     // 1. Fetch ideas
     const { data: ideas } = await insforgeClient.database
@@ -364,6 +395,25 @@ export async function getGraphData(
           label: "PUBLISHED_TO",
         });
       }
+
+      // Link Hashtag Clusters
+      const postTags = extractTags(post.content);
+      postTags.forEach((tag) => {
+        if (!addedTags.has(tag)) {
+          addedTags.add(tag);
+          nodes.push({
+            id: tag,
+            label: tag,
+            type: "Tag",
+            color: "#ec4899",
+          });
+        }
+        links.push({
+          source: post.id,
+          target: tag,
+          label: "HAS_TAG",
+        });
+      });
     });
 
     return { nodes, links };
@@ -371,4 +421,62 @@ export async function getGraphData(
     console.error("Fallback graph retrieval failed:", error);
     return { nodes: [], links: [] };
   }
+}
+
+/**
+ * Returns graph insights and cross-channel content recommendations
+ */
+export async function getGraphInsights(userId: string, insforgeClient?: any) {
+  const graph = await getGraphData(userId, insforgeClient);
+  
+  const tagCounts: Record<string, number> = {};
+  let totalPosts = 0;
+  let totalIdeas = 0;
+  let totalChannels = 0;
+
+  graph.nodes.forEach((node) => {
+    if (node.type === "Post") totalPosts++;
+    if (node.type === "Idea") totalIdeas++;
+    if (node.type === "Channel") totalChannels++;
+  });
+
+  graph.links.forEach((link) => {
+    if (link.label === "HAS_TAG") {
+      tagCounts[link.target] = (tagCounts[link.target] || 0) + 1;
+    }
+  });
+
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([tag, count]) => ({ tag, count }));
+
+  const recommendations = [];
+  if (topTags.length > 0) {
+    recommendations.push({
+      id: "rec-1",
+      title: `Cross-post top tag: ${topTags[0].tag}`,
+      description: `Your tag ${topTags[0].tag} is generating strong momentum in Neo4j graph clusters. Expand it across remaining social platforms.`,
+      tag: topTags[0].tag,
+    });
+  } else {
+    recommendations.push({
+      id: "rec-default",
+      title: "Seed Topic Clusters",
+      description: "Create posts with explicit #hashtags to unlock multi-hop cluster analytics in Neo4j AuraDB.",
+      tag: "#AI",
+    });
+  }
+
+  return {
+    metrics: {
+      totalNodes: graph.nodes.length,
+      totalRelationships: graph.links.length,
+      totalPosts,
+      totalIdeas,
+      totalChannels,
+    },
+    topTags,
+    recommendations,
+  };
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 type GraphNode = {
   id: string;
   label: string;
-  type: "Idea" | "Post" | "Channel" | "PlatformType";
+  type: "Idea" | "Post" | "Channel" | "PlatformType" | "Tag";
   color?: string;
   status?: string;
   content?: string;
@@ -46,10 +47,22 @@ export default function GraphPage() {
     },
   });
 
+  const { data: insights } = useQuery<any>({
+    queryKey: ["graph-insights"],
+    queryFn: async () => {
+      const res = await fetch("/api/graph/insights");
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [links, setLinks] = useState<GraphLink[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(
+    null,
+  );
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +77,7 @@ export default function GraphPage() {
 
     const initialNodes = data.nodes.map((node, i) => {
       const angle = (i / Math.max(1, data.nodes.length)) * 2 * Math.PI;
-      const radius = 200; // Wide spacing
+      const radius = 220; // Wide spacing
       return {
         ...node,
         x: 450 + Math.cos(angle) * radius,
@@ -232,6 +245,7 @@ export default function GraphPage() {
   const handleReset = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    setSelectedTagFilter(null);
     refetch();
   };
 
@@ -242,6 +256,8 @@ export default function GraphPage() {
         return "Created From Idea";
       case "PUBLISHED_TO":
         return "Published To Channel";
+      case "HAS_TAG":
+        return "Topic Cluster";
       default:
         return label.replace(/_/g, " ");
     }
@@ -273,6 +289,13 @@ export default function GraphPage() {
           label: "Publishing Channel",
           icon: "🌐",
         };
+      case "Tag":
+        return {
+          bg: "#ec4899", // Solid Pink
+          border: "#be185d",
+          label: "Topic Cluster",
+          icon: "🏷️",
+        };
       default:
         return {
           bg: "#64748b",
@@ -292,6 +315,8 @@ export default function GraphPage() {
       case "Channel":
       case "PlatformType":
         return 30;
+      case "Tag":
+        return 28;
       default:
         return 32;
     }
@@ -303,11 +328,14 @@ export default function GraphPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 bg-card px-6 py-4 rounded-2xl border border-border shadow-sm">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            Content Relationship Graph
+            Neo4j AuraDB Content Relationship Graph
+            <Badge className="bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 border-pink-200 text-xs font-bold px-2.5 py-0.5">
+              Topic Clusters Live
+            </Badge>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Simple, clean visualization showing connections between ideas,
-            posts, and target channels.
+            Interactive multi-hop visualization mapping ideas, posts, channels,
+            and hashtag clusters.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -370,6 +398,12 @@ export default function GraphPage() {
                   Platform / Channel
                 </span>
               </div>
+              <div className="flex items-center gap-2.5">
+                <span className="size-3.5 rounded-full bg-[#ec4899] shrink-0 shadow-xs" />
+                <span className="font-semibold text-foreground">
+                  Topic Cluster (#Tag)
+                </span>
+              </div>
             </div>
           </div>
 
@@ -409,11 +443,18 @@ export default function GraphPage() {
 
                 if (!s || !t) return null;
 
+                const isFilteredOut =
+                  selectedTagFilter &&
+                  s.id !== selectedTagFilter &&
+                  t.id !== selectedTagFilter;
+
                 const isHighlighted =
                   hoveredNode === s.id ||
                   hoveredNode === t.id ||
                   selectedNode?.id === s.id ||
-                  selectedNode?.id === t.id;
+                  selectedNode?.id === t.id ||
+                  selectedTagFilter === s.id ||
+                  selectedTagFilter === t.id;
 
                 const midX = (s.x! + t.x!) / 2;
                 const midY = (s.y! + t.y!) / 2;
@@ -421,7 +462,14 @@ export default function GraphPage() {
                 const labelWidth = formattedLabel.length * 7 + 16;
 
                 return (
-                  <g key={`link-${idx}`}>
+                  <g
+                    key={`link-${idx}`}
+                    className={
+                      isFilteredOut
+                        ? "opacity-15"
+                        : "opacity-100 transition-opacity"
+                    }
+                  >
                     <line
                       x1={s.x}
                       y1={s.y}
@@ -470,6 +518,16 @@ export default function GraphPage() {
               {nodes.map((node) => {
                 const isSelected = selectedNode?.id === node.id;
                 const isHovered = hoveredNode === node.id;
+                const isTagSelected = selectedTagFilter === node.id;
+                const isFilteredOut =
+                  selectedTagFilter &&
+                  node.id !== selectedTagFilter &&
+                  !links.some(
+                    (l) =>
+                      (l.source === selectedTagFilter &&
+                        l.target === node.id) ||
+                      (l.target === selectedTagFilter && l.source === node.id),
+                  );
                 const theme = getNodeTheme(node);
                 const radius = getNodeRadius(node);
 
@@ -477,7 +535,7 @@ export default function GraphPage() {
                   <g
                     key={node.id}
                     transform={`translate(${node.x}, ${node.y})`}
-                    className="cursor-pointer group"
+                    className={`cursor-pointer group ${isFilteredOut ? "opacity-20" : "opacity-100 transition-opacity duration-300"}`}
                     onMouseEnter={() => setHoveredNode(node.id)}
                     onMouseLeave={() => setHoveredNode(null)}
                   >
@@ -486,11 +544,13 @@ export default function GraphPage() {
                       r={radius + 6}
                       fill="transparent"
                       stroke={theme.bg}
-                      strokeWidth={isSelected || isHovered ? 3 : 0}
+                      strokeWidth={
+                        isSelected || isHovered || isTagSelected ? 3 : 0
+                      }
                       className="transition-all duration-200"
                     />
 
-                    {/* Main SOLID filled node circle (NO fading opacity) */}
+                    {/* Main SOLID filled node circle */}
                     <circle
                       r={radius}
                       fill={theme.bg}
@@ -526,8 +586,12 @@ export default function GraphPage() {
                             ? "IDEA"
                             : node.type === "Post"
                               ? "POST"
-                              : "CHANNEL";
-                        const labelW = Math.max(node.label.length, categoryStr.length) * 8 + 32;
+                              : node.type === "Tag"
+                                ? "TOPIC"
+                                : "CHANNEL";
+                        const labelW =
+                          Math.max(node.label.length, categoryStr.length) * 8 +
+                          32;
                         return (
                           <>
                             <rect
@@ -537,7 +601,11 @@ export default function GraphPage() {
                               height={40}
                               rx={6}
                               fill="var(--card)"
-                              stroke={isSelected ? theme.bg : "var(--border)"}
+                              stroke={
+                                isSelected || isTagSelected
+                                  ? theme.bg
+                                  : "var(--border)"
+                              }
                               strokeWidth={1.5}
                               className="shadow-md transition-all duration-200"
                             />
@@ -570,9 +638,66 @@ export default function GraphPage() {
           </svg>
         </div>
 
-        {/* Right Details Panel */}
-        <aside className="w-88 shrink-0 flex flex-col gap-4">
-          <Card className="flex-1 bg-card p-6 border border-border shadow-md flex flex-col gap-5 overflow-hidden rounded-2xl">
+        {/* Right Details & Neo4j Insights Panel */}
+        <aside className="w-96 shrink-0 flex flex-col gap-4 overflow-y-auto">
+          {/* Neo4j Insights Card */}
+          {insights && (
+            <Card className="bg-gradient-to-br from-card to-pink-500/5 p-5 border border-pink-500/20 shadow-md rounded-2xl flex flex-col gap-3 shrink-0">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-pink-500 animate-pulse" />
+                  Neo4j Topic Intelligence
+                </h3>
+                <Badge className="bg-pink-500/10 text-pink-600 border-pink-500/20 text-[10px]">
+                  {insights.metrics?.totalRelationships || 0} Relationships
+                </Badge>
+              </div>
+
+              {insights.topTags && insights.topTags.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Top Topic Clusters (Click to Filter Graph)
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 mt-0.5">
+                    {insights.topTags.map((item: any) => (
+                      <button
+                        key={item.tag}
+                        onClick={() =>
+                          setSelectedTagFilter(
+                            selectedTagFilter === item.tag ? null : item.tag,
+                          )
+                        }
+                        className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                          selectedTagFilter === item.tag
+                            ? "bg-pink-600 text-white border-pink-600 shadow-sm scale-105"
+                            : "bg-background text-foreground border-border hover:border-pink-400"
+                        }`}
+                      >
+                        {item.tag}
+                        <span className="text-[10px] opacity-80 bg-black/10 dark:bg-white/10 px-1.5 py-0.2 rounded-full">
+                          {item.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {insights.recommendations?.[0] && (
+                <div className="mt-1 bg-background/80 p-3 rounded-xl border border-border/80 text-xs">
+                  <div className="font-bold text-foreground flex items-center gap-1.5">
+                    💡 {insights.recommendations[0].title}
+                  </div>
+                  <p className="text-muted-foreground text-[11px] mt-1 leading-relaxed">
+                    {insights.recommendations[0].description}
+                  </p>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Selected Node Card */}
+          <Card className="flex-1 bg-card p-6 border border-border shadow-md flex flex-col gap-5 overflow-hidden rounded-2xl shrink-0 min-h-[300px]">
             <div className="flex items-center justify-between border-b border-border pb-3.5">
               <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
                 <Info className="size-4 text-primary" />
@@ -643,7 +768,7 @@ export default function GraphPage() {
                   No Node Selected
                 </h4>
                 <p className="text-xs font-medium leading-relaxed">
-                  Click on any idea, post, or channel node inside the
+                  Click on any idea, post, channel, or topic cluster inside the
                   interactive graph to view its details.
                 </p>
               </div>
