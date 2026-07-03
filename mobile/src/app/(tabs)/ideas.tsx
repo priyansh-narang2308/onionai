@@ -341,7 +341,7 @@ export default function IdeasTab() {
         <Plus color="#ffffff" size={24} strokeWidth={3} />
       </TouchableOpacity>
 
-      <Modal visible={isEditModalOpen} animationType="slide" transparent>
+      <Modal visible={isEditModalOpen} animationType="slide" transparent statusBarTranslucent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
@@ -467,7 +467,7 @@ export default function IdeasTab() {
         </View>
       </Modal>
 
-      <Modal visible={isAiModalOpen} animationType="slide" transparent>
+      <Modal visible={isAiModalOpen} animationType="slide" transparent statusBarTranslucent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(9, 9, 11, 0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
     justifyContent: "flex-end",
   },
   modalCard: {
@@ -726,6 +726,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     maxHeight: "85%",
     padding: 24,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: "row",
