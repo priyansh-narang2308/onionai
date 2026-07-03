@@ -187,8 +187,8 @@ export default function SettingsTab() {
                         </View>
                       </View>
                       <View style={styles.channelActionRow}>
-                        {isConnected ? (
-                          <TouchableOpacity onPress={() => handleDisconnect(channel.user_channel_id)} style={[styles.channelBtn, styles.channelBtnDisconnect]} disabled={isPendingAction}>
+                        {isConnected && channel.user_channel_id ? (
+                          <TouchableOpacity onPress={() => handleDisconnect(channel.user_channel_id!)} style={[styles.channelBtn, styles.channelBtnDisconnect]} disabled={isPendingAction}>
                             {isPendingAction ? <ActivityIndicator color="#ef4444" size="small" /> : <Text style={styles.channelBtnTextDisconnect}>Disconnect</Text>}
                           </TouchableOpacity>
                         ) : (
