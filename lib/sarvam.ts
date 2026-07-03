@@ -18,7 +18,7 @@ export async function translateToIndianLanguage(
       input: text,
       source_language_code: "en-IN",
       target_language_code: targetLang,
-      speaker_gender: "MALE", // Default, could also be FEMALE
+      speaker_gender: "Male", // Default, could also be "Female"
       mode: "formal", // formal | colloquial
     }),
   });
