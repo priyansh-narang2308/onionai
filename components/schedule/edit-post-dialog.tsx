@@ -16,6 +16,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChannelType } from "@/types/channel.type";
@@ -315,22 +326,41 @@ export function EditPostDialog({
                     POST_STATUS.DRAFT && <Spinner />}
                 Save Draft
               </Button>
-              <Button
-                variant="destructive"
-                size="lg"
-                onClick={() => {
-                  if (
-                    post &&
-                    confirm("Are you sure you want to delete this post?")
-                  ) {
-                    deletePostMutation.mutate(post.id);
-                  }
-                }}
-                disabled={deletePostMutation.isPending}
-              >
-                {deletePostMutation.isPending && <Spinner />}
-                Delete
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    disabled={deletePostMutation.isPending}
+                    className="cursor-pointer"
+                  >
+                    {deletePostMutation.isPending && <Spinner />}
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this post? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      className="cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => {
+                        if (post) {
+                          deletePostMutation.mutate(post.id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
             <ButtonGroup className="p-0!">
               <ScheduleDatePicker

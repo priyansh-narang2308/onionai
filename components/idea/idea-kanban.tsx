@@ -23,6 +23,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import IdeaDialog from "./idea-dialog";
 import { IdeaType } from "@/types/idea.type";
 import { GenerateIdeasPopover } from "./generate-ideas-popover";
@@ -39,6 +49,10 @@ const IdeaKanban = () => {
   const [showIdeaDialog, setShowIdeaDialog] = useState<boolean>(false);
   const [selectedIdea, setSelectedIdea] = useState<IdeaType | null>(null);
   const [selectedColumnId, setSelectedColumnId] = useState<string>("");
+  const [ideaToDelete, setIdeaToDelete] = useState<{
+    columnId: string;
+    ideaId: string;
+  } | null>(null);
 
   const { data: ideaData, isPending } = useQuery({
     queryKey: ["ideas"],
@@ -416,10 +430,10 @@ p-2 px-3 transition-colors min-h-0`,
                                                       deleteIdeaMutation.isPending
                                                     }
                                                     onSelect={() => {
-                                                      handleDeleteIdea(
-                                                        column.id,
-                                                        idea.id || "",
-                                                      );
+                                                      setIdeaToDelete({
+                                                        columnId: column.id,
+                                                        ideaId: idea.id || "",
+                                                      });
                                                     }}
                                                   >
                                                     Delete
@@ -478,6 +492,42 @@ p-2 px-3 transition-colors min-h-0`,
         }))}
         onSave={handleSaveIdea}
       />
+
+      <AlertDialog
+        open={!!ideaToDelete}
+        onOpenChange={(open) => {
+          if (!open) setIdeaToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Idea</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this idea? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="cursor-pointer"
+              onClick={() => setIdeaToDelete(null)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              className="cursor-pointer bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (ideaToDelete) {
+                  handleDeleteIdea(ideaToDelete.columnId, ideaToDelete.ideaId);
+                  setIdeaToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
