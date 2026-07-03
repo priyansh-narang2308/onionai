@@ -2,7 +2,14 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Volume2, Loader2, Download, Play, Pause, Sparkles } from "lucide-react";
+import {
+  Volume2,
+  Loader2,
+  Download,
+  Play,
+  Pause,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -77,6 +84,7 @@ export function SarvamTTSWidget({ text }: SarvamTTSWidgetProps) {
         setAudioRef(audio);
         toast.success("AI Voiceover generated with Sarvam Bulbul!");
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.message || "Something went wrong generating speech");
     } finally {
@@ -106,7 +114,7 @@ export function SarvamTTSWidget({ text }: SarvamTTSWidgetProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 bg-gradient-to-r from-lime-500/10 via-emerald-500/10 to-teal-500/10 rounded-xl border border-lime-500/20">
+    <div className="flex flex-col gap-2 p-3 bg-linear-to-r from-lime-500/10 via-emerald-500/10 to-teal-500/10 rounded-xl border border-lime-500/20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-lime-600 animate-pulse" />
@@ -118,7 +126,8 @@ export function SarvamTTSWidget({ text }: SarvamTTSWidgetProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs px-2">
-                {LANGUAGES.find((l) => l.code === selectedLang)?.name || "Hindi"}
+                {LANGUAGES.find((l) => l.code === selectedLang)?.name ||
+                  "Hindi"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-36">
@@ -137,7 +146,11 @@ export function SarvamTTSWidget({ text }: SarvamTTSWidgetProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs px-2">
-                {SPEAKERS.find((s) => s.id === selectedSpeaker)?.name.split(" ")[0]}
+                {
+                  SPEAKERS.find((s) => s.id === selectedSpeaker)?.name.split(
+                    " ",
+                  )[0]
+                }
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -185,7 +198,11 @@ export function SarvamTTSWidget({ text }: SarvamTTSWidgetProps) {
               className="size-8 rounded-full bg-lime-500 text-white hover:bg-lime-600"
               onClick={togglePlay}
             >
-              {isPlaying ? <Pause className="size-4" /> : <Play className="size-4 ml-0.5" />}
+              {isPlaying ? (
+                <Pause className="size-4" />
+              ) : (
+                <Play className="size-4 ml-0.5" />
+              )}
             </Button>
             <span className="text-xs font-medium text-muted-foreground">
               {isPlaying ? "Playing preview..." : "Voiceover ready"}

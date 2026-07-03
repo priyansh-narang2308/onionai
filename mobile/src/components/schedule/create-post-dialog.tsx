@@ -382,14 +382,18 @@ export function CreatePostDialog({
                     const info = getChannelInfo(ch);
                     const chContent = getChannelContent(ch);
                     const isCustom = perChannelContent[ch] !== undefined;
-                    const overLimit = chContent.length > (info?.character_limit || Infinity);
+                    const overLimit =
+                      chContent.length > (info?.character_limit || Infinity);
 
                     return (
                       <View
                         key={ch}
                         style={{
                           borderWidth: 1,
-                          borderColor: expandedChannel === ch ? info?.color + "40" : "#f4f4f5",
+                          borderColor:
+                            expandedChannel === ch
+                              ? info?.color + "40"
+                              : "#f4f4f5",
                           borderRadius: 14,
                           overflow: "hidden",
                         }}
@@ -480,7 +484,9 @@ export function CreatePostDialog({
                                 transform: [
                                   {
                                     rotate:
-                                      expandedChannel === ch ? "180deg" : "0deg",
+                                      expandedChannel === ch
+                                        ? "180deg"
+                                        : "0deg",
                                   },
                                 ],
                               }}
@@ -488,7 +494,9 @@ export function CreatePostDialog({
                           </View>
                         </TouchableOpacity>
                         {expandedChannel === ch && (
-                          <View style={{ paddingHorizontal: 14, paddingBottom: 12 }}>
+                          <View
+                            style={{ paddingHorizontal: 14, paddingBottom: 12 }}
+                          >
                             <TextInput
                               style={{
                                 backgroundColor: "#fafafa",
@@ -724,7 +732,7 @@ export function CreatePostDialog({
         visible={showTranslation}
         onClose={() => setShowTranslation(false)}
         content={globalContent}
-        onTranslate={(translatedContent, _language) => {
+        onTranslate={(translatedContent) => {
           setGlobalContent(translatedContent);
           setShowTranslation(false);
           toast("Translation applied!");

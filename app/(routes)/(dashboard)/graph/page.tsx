@@ -92,6 +92,7 @@ export default function GraphPage() {
     if (initialNodes.length > 0 && !selectedNode) {
       setSelectedNode(initialNodes[0]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   // Smooth layout engine that spreads nodes out cleanly

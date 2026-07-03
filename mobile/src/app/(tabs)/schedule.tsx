@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
@@ -70,43 +69,9 @@ export default function ScheduleTab() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState("");
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(
     null,
   );
-
-  const { data: ideasData } = useQuery({
-    queryKey: ["ideas"],
-    queryFn: () => fetchWithAuth("/api/idea", { method: "GET" }, getToken),
-  });
-  const ideas = (ideasData?.groups || []).flatMap((g: any) => g.ideas || []);
-
-  const deletePostMutation = useMutation({
-    mutationFn: (postId: string) =>
-      fetchWithAuth(`/api/post/${postId}`, { method: "DELETE" }, getToken),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["post-totals"] });
-      setIsEditOpen(false);
-      setEditingPost(null);
-      toast("Post deleted successfully");
-    },
-    onError: (err: any) => {
-      toast(err.message || "Failed to delete post", "error");
-    },
-  });
-
-  const handleDeletePost = (postId: string) => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => deletePostMutation.mutate(postId),
-      },
-    ]);
-  };
 
   const {
     data: postsData,

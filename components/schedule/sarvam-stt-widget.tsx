@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Loader2, Sparkles } from "lucide-react";
+import { Mic, MicOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface SarvamSTTWidgetProps {
@@ -29,17 +29,23 @@ export function SarvamSTTWidget({ onTranscript }: SarvamSTTWidgetProps) {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
         await uploadAudioForTranscription(audioBlob);
       };
 
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
-      toast.info("Recording voice note... Speak in English, Hindi, or any Indian dialect!");
+      toast.info(
+        "Recording voice note... Speak in English, Hindi, or any Indian dialect!",
+      );
     } catch (error) {
       console.error("Microphone access failed:", error);
-      toast.error("Could not access microphone. Please allow microphone permissions.");
+      toast.error(
+        "Could not access microphone. Please allow microphone permissions.",
+      );
     }
   };
 
@@ -73,6 +79,7 @@ export function SarvamSTTWidget({ onTranscript }: SarvamSTTWidgetProps) {
       } else {
         toast.warning("Could not detect clear speech in the audio.");
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.message || "Something went wrong transcribing speech");
     } finally {

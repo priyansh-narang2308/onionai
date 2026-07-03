@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Switch,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,7 +17,6 @@ import {
   Sparkles,
   Zap,
   ShieldCheck,
-  ExternalLink,
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
 
@@ -208,7 +206,10 @@ export default function BillingTab() {
                 disabled={loadingPlan !== null}
               >
                 {loadingPlan === plan.id ? (
-                  <ActivityIndicator color={isSelected ? "#ffffff" : "#09090b"} size="small" />
+                  <ActivityIndicator
+                    color={isSelected ? "#ffffff" : "#09090b"}
+                    size="small"
+                  />
                 ) : (
                   <Text
                     style={[
