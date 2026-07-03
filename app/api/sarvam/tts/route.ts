@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { text, targetLanguage = "hi-IN", speaker = "meera" } = await request.json();
+    const { text, targetLanguage = "hi-IN", speaker = "anushka" } = await request.json();
     if (!text || !text.trim()) {
       return NextResponse.json(
         { error: "Missing text content for voiceover" },
