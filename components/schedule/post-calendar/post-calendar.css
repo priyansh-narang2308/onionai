@@ -13,15 +13,6 @@
   border-bottom: 1px solid var(--color-border) !important;
 }
 
-/* .rbc-day-bg[data-past="true"] {
-  background-color: gray !important;
-  opacity: 0.5;
-  pointer-events: none;
-} */
-
-
-
-
 .rbc-time-header-content .rbc-header {
   border-bottom: none !important;
 }

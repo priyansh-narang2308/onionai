@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,7 +45,6 @@ export function InstagramPreview({ text, images }: InstagramPreviewProps) {
   return (
     <Card className="overflow-hidden border-none shadow-none">
       <CardContent className="p-0">
-        {/* Header */}
         <div className="flex items-center justify-between p-3 pt-0">
           <div className="flex items-center gap-2">
             <Avatar className="size-8">
@@ -56,7 +56,6 @@ export function InstagramPreview({ text, images }: InstagramPreviewProps) {
           <MoreHorizontal className="size-5 text-muted-foreground" />
         </div>
 
-        {/* Image Display - Using Shadcn Carousel */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {images && images.length > 0 ? (
             <Carousel setApi={setApi} className="w-full h-full">

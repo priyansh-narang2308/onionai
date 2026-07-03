@@ -370,15 +370,15 @@ p-2 px-3 transition-colors min-h-0`,
                                                 {idea.images
                                                   .slice(0, 4)
                                                   .map((image, index) => (
-                                                     <Image
-                                                       key={index}
-                                                       src={image.url}
-                                                       alt={idea.title}
-                                                       width={48}
-                                                       height={48}
-                                                       unoptimized
-                                                       className="w-full h-12 rounded object-cover border"
-                                                     />
+                                                    <Image
+                                                      key={index}
+                                                      src={image.url}
+                                                      alt={idea.title}
+                                                      width={48}
+                                                      height={48}
+                                                      unoptimized
+                                                      className="w-full h-12 rounded object-cover border"
+                                                    />
                                                   ))}
                                               </div>
                                             )}

@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useAuth, UserButton } from "@clerk/nextjs";
-import { ArrowRight, Check, ChevronDown, Sparkles, Zap, Calendar, MessageSquare, LayoutDashboard, Menu, X, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  Zap,
+  Calendar,
+  LayoutDashboard,
+  Menu,
+  X,
+  ChevronRight,
+} from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -30,13 +38,15 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden">
       {/* Floating Navbar */}
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${isScrolled ? "py-4" : "py-6"
-          }`}
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+          isScrolled ? "py-4" : "py-6"
+        }`}
       >
         <div className="mx-auto px-6 max-w-7xl relative">
           <div
-            className={`flex items-center justify-between rounded-full border border-border/40 bg-background/60 px-6 py-3 backdrop-blur-xl shadow-sm transition-all duration-300 ${isScrolled ? "shadow-md bg-background/80" : ""
-              }`}
+            className={`flex items-center justify-between rounded-full border border-border/40 bg-background/60 px-6 py-3 backdrop-blur-xl shadow-sm transition-all duration-300 ${
+              isScrolled ? "shadow-md bg-background/80" : ""
+            }`}
           >
             <Logo className="shrink-0 scale-95" />
 
@@ -117,15 +127,25 @@ export default function LandingPage() {
               <div className="flex flex-col gap-3">
                 {!isSignedIn ? (
                   <>
-                    <Button asChild variant="outline" className="w-full rounded-xl h-12">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full rounded-xl h-12"
+                    >
                       <Link href="/sign-in">Log in</Link>
                     </Button>
-                    <Button asChild className="w-full rounded-xl h-12 bg-foreground text-background hover:bg-foreground/90">
+                    <Button
+                      asChild
+                      className="w-full rounded-xl h-12 bg-foreground text-background hover:bg-foreground/90"
+                    >
                       <Link href="/sign-up">Get started for free</Link>
                     </Button>
                   </>
                 ) : (
-                  <Button asChild className="w-full rounded-xl h-12 bg-foreground text-background">
+                  <Button
+                    asChild
+                    className="w-full rounded-xl h-12 bg-foreground text-background"
+                  >
                     <Link href="/schedule">Open Workspace</Link>
                   </Button>
                 )}
@@ -140,16 +160,16 @@ export default function LandingPage() {
         <section className="relative flex flex-col items-center justify-center min-h-[85vh] px-6 text-center">
           {/* Background effects */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[50vh] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px] mask-[radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
-
-            <h1 className="text-5xl font-extrabold tracking-tight text-balance sm:text-6xl md:text-8xl bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/60 pb-4">
+            <h1 className="text-5xl font-extrabold tracking-tight text-balance sm:text-6xl md:text-8xl bg-clip-text text-transparent bg-linear-to-br from-foreground to-foreground/60 pb-4">
               Your entire social presence, automated.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg md:text-xl text-muted-foreground text-balance font-medium leading-relaxed">
-              Plan ideas, customize drafts for each channel, and let AI-powered scheduling do the rest. One workspace for every platform.
+              Plan ideas, customize drafts for each channel, and let AI-powered
+              scheduling do the rest. One workspace for every platform.
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
@@ -193,15 +213,30 @@ export default function LandingPage() {
         <section id="integrations" className="py-16">
           <div className="mx-auto max-w-5xl px-6 py-8">
             <div className="space-y-8 text-center">
-              <h2 className="text-foreground text-3xl font-semibold tracking-tight">Integrate with your favorite channels</h2>
+              <h2 className="text-foreground text-3xl font-semibold tracking-tight">
+                Integrate with your favorite channels
+              </h2>
               <div className="*:bg-foreground/5 mx-auto flex max-w-xl flex-wrap justify-center gap-0.5 *:rounded *:p-6 *:first:rounded-l-2xl *:last:rounded-r-2xl">
-                {[ChannelTypeEnum.TWITTER, ChannelTypeEnum.LINKEDIN, ChannelTypeEnum.INSTAGRAM, ChannelTypeEnum.YOUTUBE].map((type) => {
+                {[
+                  ChannelTypeEnum.TWITTER,
+                  ChannelTypeEnum.LINKEDIN,
+                  ChannelTypeEnum.INSTAGRAM,
+                  ChannelTypeEnum.YOUTUBE,
+                ].map((type) => {
                   const icon = getChannelIcon(type);
                   return (
-                    <div key={type} className="flex items-center justify-center hover:bg-foreground/10 transition-colors cursor-pointer group">
-                      {icon && <HugeiconsIcon icon={icon} className="m-auto size-10 group-hover:scale-110 transition-transform duration-300" />}
+                    <div
+                      key={type}
+                      className="flex items-center justify-center hover:bg-foreground/10 transition-colors cursor-pointer group"
+                    >
+                      {icon && (
+                        <HugeiconsIcon
+                          icon={icon}
+                          className="m-auto size-10 group-hover:scale-110 transition-transform duration-300"
+                        />
+                      )}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -209,10 +244,18 @@ export default function LandingPage() {
         </section>
 
         {/* Feature Bento Grid */}
-        <section id="features" className="relative mx-auto max-w-7xl px-6 py-24">
+        <section
+          id="features"
+          className="relative mx-auto max-w-7xl px-6 py-24"
+        >
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-balance">Everything you need, nothing you don't.</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">Built for modern creators and teams who want to move fast without the clutter of traditional tools.</p>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-balance">
+              Everything you need, nothing you don&apos;t.
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+              Built for modern creators and teams who want to move fast without
+              the clutter of traditional tools.
+            </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 md:grid-rows-2 auto-rows-[320px]">
@@ -223,9 +266,13 @@ export default function LandingPage() {
                 <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
                   <LayoutDashboard className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-2xl md:text-4xl font-bold tracking-tight mb-4">The cleanest way to plan.</h3>
+                <h3 className="text-2xl md:text-4xl font-bold tracking-tight mb-4">
+                  The cleanest way to plan.
+                </h3>
                 <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-                  See your ideas, drafts, and scheduled posts in one beautifully designed workspace. No more juggling tabs, spreadsheets, or messy notes.
+                  See your ideas, drafts, and scheduled posts in one beautifully
+                  designed workspace. No more juggling tabs, spreadsheets, or
+                  messy notes.
                 </p>
               </div>
               <div className="relative z-10 mt-10 flex-1 w-full bg-muted/50 rounded-t-xl border-x border-t border-border/50 shadow-inner overflow-hidden translate-y-8 group-hover:translate-y-4 transition-transform duration-500">
@@ -250,7 +297,8 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold mb-2">Publish everywhere</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Start with a global draft, fine-tune for each channel, and keep every post matched to the platform's specific style.
+                Start with a global draft, fine-tune for each channel, and keep
+                every post matched to the platform&apos;s specific style.
               </p>
             </div>
 
@@ -262,7 +310,8 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold mb-2">Set it and forget it</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Reliable automated publishing means you can batch create your content and trust it will go out exactly when you want.
+                Reliable automated publishing means you can batch create your
+                content and trust it will go out exactly when you want.
               </p>
             </div>
           </div>
@@ -273,16 +322,28 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-border/50">
               <div className="flex flex-col items-center text-center pt-8 md:pt-0">
-                <span className="text-6xl font-extrabold text-foreground mb-4">8+</span>
-                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">Supported Platforms</span>
+                <span className="text-6xl font-extrabold text-foreground mb-4">
+                  8+
+                </span>
+                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">
+                  Supported Platforms
+                </span>
               </div>
               <div className="flex flex-col items-center text-center pt-8 md:pt-0">
-                <span className="text-6xl font-extrabold text-foreground mb-4">1</span>
-                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">Unified Workspace</span>
+                <span className="text-6xl font-extrabold text-foreground mb-4">
+                  1
+                </span>
+                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">
+                  Unified Workspace
+                </span>
               </div>
               <div className="flex flex-col items-center text-center pt-8 md:pt-0">
-                <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500 mb-4">AI</span>
-                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">Native Integration</span>
+                <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-violet-500 mb-4">
+                  AI
+                </span>
+                <span className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">
+                  Native Integration
+                </span>
               </div>
             </div>
           </div>
@@ -292,11 +353,18 @@ export default function LandingPage() {
         <section className="py-32 px-6 text-center">
           <div className="mx-auto max-w-4xl rounded-[3rem] bg-foreground text-background p-12 md:p-20 relative overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-violet-500/20 opacity-50 pointer-events-none" />
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance relative z-10">Ready to take control?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance relative z-10">
+              Ready to take control?
+            </h2>
             <p className="text-lg md:text-xl text-background/80 mb-10 max-w-2xl mx-auto text-balance relative z-10">
-              Join modern creators who are saving hours every week by planning and scheduling their content with onion.ai.
+              Join modern creators who are saving hours every week by planning
+              and scheduling their content with onion.ai.
             </p>
-            <Button asChild size="lg" className="h-14 px-8 rounded-full bg-background text-foreground hover:bg-background/90 text-lg font-medium hover:scale-105 transition-transform relative z-10">
+            <Button
+              asChild
+              size="lg"
+              className="h-14 px-8 rounded-full bg-background text-foreground hover:bg-background/90 text-lg font-medium hover:scale-105 transition-transform relative z-10"
+            >
               <Link href="/sign-up">Start for free today</Link>
             </Button>
           </div>
@@ -308,14 +376,20 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <Logo className="scale-90" hideName />
-            <span className="font-semibold tracking-tight text-lg">onion.ai</span>
+            <span className="font-semibold tracking-tight text-lg">
+              onion.ai
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Onion AI. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link href="#" className="hover:text-foreground transition-colors">
+              Privacy
+            </Link>
+            <Link href="#" className="hover:text-foreground transition-colors">
+              Terms
+            </Link>
           </div>
         </div>
       </footer>
@@ -323,7 +397,17 @@ export default function LandingPage() {
   );
 }
 
-const IntegrationCard = ({ title, description, children, link = '#' }: { title: string; description: string; children: React.ReactNode; link?: string }) => {
+const IntegrationCard = ({
+  title,
+  description,
+  children,
+  link = "#",
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  link?: string;
+}) => {
   return (
     <Card className="p-6 border-border/50 shadow-sm hover:shadow-md transition-shadow">
       <div className="relative">
@@ -331,7 +415,9 @@ const IntegrationCard = ({ title, description, children, link = '#' }: { title: 
 
         <div className="space-y-2 py-6">
           <h3 className="text-base font-medium">{title}</h3>
-          <p className="text-muted-foreground line-clamp-2 text-sm">{description}</p>
+          <p className="text-muted-foreground line-clamp-2 text-sm">
+            {description}
+          </p>
         </div>
 
         <div className="flex gap-3 border-t border-dashed border-border/50 pt-6">
@@ -339,7 +425,8 @@ const IntegrationCard = ({ title, description, children, link = '#' }: { title: 
             asChild
             variant="secondary"
             size="sm"
-            className="gap-1 pr-2 shadow-none hover:bg-secondary/80">
+            className="gap-1 pr-2 shadow-none hover:bg-secondary/80"
+          >
             <Link href={link}>
               Learn More
               <ChevronRight className="ml-0 !size-3.5 opacity-50" />
@@ -348,5 +435,5 @@ const IntegrationCard = ({ title, description, children, link = '#' }: { title: 
         </div>
       </div>
     </Card>
-  )
-}
+  );
+};

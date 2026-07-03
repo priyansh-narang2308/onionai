@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -13,11 +14,11 @@ interface YoutubePreviewProps {
   images?: string[];
 }
 
-export function YoutubePreview({ text, images }: YoutubePreviewProps) {
+export function YoutubePreview({ images }: YoutubePreviewProps) {
   return (
     <Card className="overflow-hidden border-none! shadow-none bg-transparent">
       <CardContent className="p-0">
-        <div className="relative aspect-[9/16] w-full max-w-[340px] mx-auto bg-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl">
+        <div className="relative aspect-9/16 w-full max-w-[340px] mx-auto bg-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl">
           {images && images.length > 0 ? (
             <img
               src={images[0]}
@@ -73,7 +74,6 @@ export function YoutubePreview({ text, images }: YoutubePreviewProps) {
             </div>
           </div>
 
-          {/* Bottom Info Overlay */}
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
             <div className="flex items-center gap-2">
               <Avatar className="size-9 border-2 border-white/20">
@@ -87,7 +87,7 @@ export function YoutubePreview({ text, images }: YoutubePreviewProps) {
             </div>
 
             {/* Music/Audio Thumbnail Placeholder */}
-            <div className="size-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 border-2 border-white/30 overflow-hidden shadow-lg animate-pulse">
+            <div className="size-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 border-2 border-white/30 overflow-hidden shadow-lg animate-pulse">
               <Avatar className="size-full rounded-none">
                 <AvatarImage src="./images/avatar.webp" />
               </Avatar>

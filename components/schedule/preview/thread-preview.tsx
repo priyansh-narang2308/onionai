@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Repeat2, Send, Plus } from "lucide-react";
@@ -33,7 +34,7 @@ export function ThreadPreview({
               <span className="text-sm font-semibold">{handle || "Onion"}</span>
               <span className="text-xs text-muted-foreground">21h</span>
             </div>
-            <p className="mt-1 text-sm leading-normal whitespace-pre-wrap break-words">
+            <p className="mt-1 text-sm leading-normal whitespace-pre-wrap wrap-break-word">
               {text || (
                 <span className="text-muted-foreground italic">
                   Nothing yet…
@@ -41,7 +42,6 @@ export function ThreadPreview({
               )}
             </p>
 
-            {/* Images display - Horizontal Scroll based on screenshot */}
             {images && images.length > 0 && (
               <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {images.map((image, index) => (

@@ -1,11 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 import { PostType } from "@/types/post.type";
-import {
-  keepPreviousData,
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
@@ -28,8 +23,6 @@ import { EditPostDialog } from "./edit-post-dialog";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import { cn } from "@/lib/utils";
-
-type TabType = "draft" | "queue" | "published" | "failed";
 
 type GroupPostType = {
   key: string;

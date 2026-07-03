@@ -1,32 +1,32 @@
-"use client"
+/* eslint-disable @next/next/no-img-element */
+"use client";
 
-import * as React from "react"
-import { EmojiPicker } from "@ferrucc-io/emoji-picker"
-import { X, Wand2Icon, ImagePlus, SmileIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { Separator } from "./ui/separator"
-import { Spinner } from "./ui/spinner"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Textarea } from "./ui/textarea"
-import { ImageObject } from "@/types/post.type"
-
+import * as React from "react";
+import { EmojiPicker } from "@ferrucc-io/emoji-picker";
+import { X, Wand2Icon, ImagePlus, SmileIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Separator } from "./ui/separator";
+import { Spinner } from "./ui/spinner";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Textarea } from "./ui/textarea";
+import { ImageObject } from "@/types/post.type";
 
 interface ContentTextareaProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  contentClass?: string
-  minHeight?: number
-  showAIAssistant?: boolean
-  onAIAssistantClick?: () => void
-  showHashtag?: boolean
-  className?: string
-  images?: ImageObject[]
-  onImagesChange?: (images: ImageObject[]) => void
-  renderToolbarRight?: React.ReactNode
-  renderContent?: React.ReactNode
-  disabled?: boolean
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  contentClass?: string;
+  minHeight?: number;
+  showAIAssistant?: boolean;
+  onAIAssistantClick?: () => void;
+  showHashtag?: boolean;
+  className?: string;
+  images?: ImageObject[];
+  onImagesChange?: (images: ImageObject[]) => void;
+  renderToolbarRight?: React.ReactNode;
+  renderContent?: React.ReactNode;
+  disabled?: boolean;
 }
 
 const ContentTextarea = ({
@@ -42,71 +42,70 @@ const ContentTextarea = ({
   onImagesChange,
   renderToolbarRight,
   renderContent,
-  disabled = false
+  disabled = false,
 }: ContentTextareaProps) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
-  const [isUploading, setIsUploading] = React.useState(false)
-  const [emojiOpen, setEmojiOpen] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [emojiOpen, setEmojiOpen] = React.useState(false);
 
   const insertEmoji = (emoji: string) => {
-    if (disabled) return
-    const textarea = textareaRef.current
+    if (disabled) return;
+    const textarea = textareaRef.current;
     if (!textarea) {
-      onChange(`${value}${emoji}`)
-      setEmojiOpen(false)
-      return
+      onChange(`${value}${emoji}`);
+      setEmojiOpen(false);
+      return;
     }
-    const start = textarea.selectionStart ?? value.length
-    const end = textarea.selectionEnd ?? value.length
-    const nextValue = `${value.slice(0, start)}${emoji}${value.slice(end)}`
+    const start = textarea.selectionStart ?? value.length;
+    const end = textarea.selectionEnd ?? value.length;
+    const nextValue = `${value.slice(0, start)}${emoji}${value.slice(end)}`;
 
-    onChange(nextValue)
-    setEmojiOpen(false)
-  }
+    onChange(nextValue);
+    setEmojiOpen(false);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setIsUploading(true)
-    const newImages = [...images]
+    setIsUploading(true);
+    const newImages = [...images];
 
     try {
       for (const file of Array.from(files)) {
-        const formData = new FormData()
-        formData.append("file", file)
+        const formData = new FormData();
+        formData.append("file", file);
         const response = await fetch("/api/upload-image", {
           method: "POST",
           body: formData,
-        })
-        if (!response.ok) throw new Error("Upload failed")
-        const result = await response.json()
+        });
+        if (!response.ok) throw new Error("Upload failed");
+        const result = await response.json();
         if (result.image) {
           newImages.push({
             url: result.image.url,
-            key: result.image.key
-          })
+            key: result.image.key,
+          });
         }
       }
-      onImagesChange?.(newImages)
+      onImagesChange?.(newImages);
     } catch (error) {
-      console.error("Upload error:", error)
+      console.error("Upload error:", error);
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = ""
+        fileInputRef.current.value = "";
       }
     }
-  }
+  };
 
   const handleRemoveImage = (index: number) => {
-    onImagesChange?.(images.filter((_, i) => i !== index))
-  }
+    onImagesChange?.(images.filter((_, i) => i !== index));
+  };
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
-
       <Textarea
         ref={textareaRef}
         value={value}
@@ -119,8 +118,8 @@ const ContentTextarea = ({
           "disabled:bg-transparent! dark:disabled:bg-transparent! dark:bg-transparent!",
           "placeholder:text-muted-foreground/80 overflow-y-auto",
           disabled && "opacity-50 cursor-not-allowed",
-          contentClass
-          // `w-full bg-transparent 
+          contentClass,
+          // `w-full bg-transparent
           // text-base
           // placeholder:text-muted-foreground/80 focus:outline-none`,
           // //contentClass && contentClass,
@@ -132,13 +131,16 @@ const ContentTextarea = ({
       <div className="shrink-0 space-y-3 mt-4">
         <div className="flex items-center gap-3">
           <div
-            onClick={() => !isUploading && !disabled && fileInputRef.current?.click()}
+            onClick={() =>
+              !isUploading && !disabled && fileInputRef.current?.click()
+            }
             className={cn(
               "group/upload shrink-0 size-24 border border-dashed border-border/80 hover:border-primary/50",
               "rounded-xl flex flex-col items-center justify-center cursor-pointer bg-muted/40 hover:bg-primary/5",
               "transition-all duration-300 shadow-sm",
-              (isUploading || disabled) && "opacity-50 cursor-not-allowed pointer-events-none",
-              disabled && "grayscale"
+              (isUploading || disabled) &&
+                "opacity-50 cursor-not-allowed pointer-events-none",
+              disabled && "grayscale",
             )}
           >
             {isUploading ? (
@@ -187,10 +189,10 @@ const ContentTextarea = ({
           <div className="flex items-center gap-1.5">
             <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
               <PopoverTrigger asChild>
-                <Button 
-                  size="icon-sm" 
-                  className="cursor-pointer rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200" 
-                  variant="ghost" 
+                <Button
+                  size="icon-sm"
+                  className="cursor-pointer rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  variant="ghost"
                   disabled={disabled}
                 >
                   <SmileIcon className="h-4.5 w-4.5" />
@@ -238,6 +240,6 @@ const ContentTextarea = ({
         {renderContent && <>{renderContent}</>}
       </div>
     </div>
-  )
-}
-export default ContentTextarea
+  );
+};
+export default ContentTextarea;

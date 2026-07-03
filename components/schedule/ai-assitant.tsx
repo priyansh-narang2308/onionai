@@ -1,40 +1,49 @@
-
-"use client"
-import * as React from "react"
-import { useMutation } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { Repeat, Minus, Plus, Wand2Icon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { Textarea } from "@/components/ui/textarea"
-import { Spinner } from "../ui/spinner"
-import { useSubscription } from "@clerk/nextjs/experimental"
-import Link from "next/link"
+"use client";
+import * as React from "react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Repeat, Minus, Plus, Wand2Icon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "../ui/spinner";
+import { useSubscription } from "@clerk/nextjs/experimental";
+import Link from "next/link";
 
 const QUICK_ACTIONS = [
   { icon: Repeat, label: "Rephrase" },
   { icon: Minus, label: "Shorten" },
   { icon: Plus, label: "Expand" },
-]
+];
 
 interface AIAssistantProps {
-  onGenerate?: (content: string) => void
-  className?: string
-  content?: string
-  channelId?: string
+  onGenerate?: (content: string) => void;
+  className?: string;
+  content?: string;
+  channelId?: string;
 }
 
-export function AIAssistant({ className, content, channelId, onGenerate }: AIAssistantProps) {
-  const [prompt, setPrompt] = React.useState("")
-  const { data: subscription, isLoading } = useSubscription()
-  const canUseAI =
-    !!subscription?.subscriptionItems?.some((item) => {
-      const planSlug = item.plan.slug
-      return planSlug === "pro" || planSlug === "premium"
-    })
+export function AIAssistant({
+  className,
+  content,
+  channelId,
+  onGenerate,
+}: AIAssistantProps) {
+  const [prompt, setPrompt] = React.useState("");
+  const { data: subscription, isLoading } = useSubscription();
+  const canUseAI = !!subscription?.subscriptionItems?.some((item) => {
+    const planSlug = item.plan.slug;
+    return planSlug === "pro" || planSlug === "premium";
+  });
 
   const generateMutation = useMutation({
-    mutationFn: async ({ action, promptText }: { action: string; promptText?: string }) => {
+    mutationFn: async ({
+      action,
+      promptText,
+    }: {
+      action: string;
+      promptText?: string;
+    }) => {
       const res = await fetch("/api/post/generate-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,51 +53,57 @@ export function AIAssistant({ className, content, channelId, onGenerate }: AIAss
           content,
           channelId,
         }),
-      })
+      });
       if (!res.ok) {
-        throw new Error("Failed to generate post")
+        throw new Error("Failed to generate post");
       }
-      return res.json()
+      return res.json();
     },
     onSuccess: (data) => {
       // setGeneratedContent(data.content)
-      onGenerate?.(data.content)
-      setPrompt("")
+      onGenerate?.(data.content);
+      setPrompt("");
     },
     onError: (error: unknown) => {
-      console.error("Generation error:", error)
-      const message = error instanceof Error ? error.message : "Failed to generate post. Please try again."
-      toast.error(message)
+      console.error("Generation error:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate post. Please try again.";
+      toast.error(message);
     },
-  })
+  });
 
   const handleQuickAction = (label: string) => {
     generateMutation.mutate({
-      action: label.toLowerCase()
-    })
-  }
+      action: label.toLowerCase(),
+    });
+  };
 
   const handleGenerate = () => {
     if (prompt.trim()) {
       generateMutation.mutate({
         action: "generate",
-        promptText: prompt.trim()
-      })
+        promptText: prompt.trim(),
+      });
     }
-  }
+  };
 
   return (
     <div
       className={cn(
         "flex flex-col h-full rounded-lg border border-border bg-background p-4",
-        className
+        className,
       )}
     >
-
       {!canUseAI && !isLoading && (
-        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3
-           text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-          <p className="text-sm font-medium">AI idea generation requires an upgrade</p>
+        <div
+          className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3
+           text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <p className="text-sm font-medium">
+            AI idea generation requires an upgrade
+          </p>
           <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-200/80">
             <Link href="/billing" className="underline underline-offset-4">
               Upgrade
@@ -101,16 +116,16 @@ export function AIAssistant({ className, content, channelId, onGenerate }: AIAss
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2 ">
           <Wand2Icon className="h-4 w-4 text-purple-500" />
-          <span className="text-sm font-semibold bg-linear-to-r from-purple-500
-           to-blue-500 bg-clip-text text-transparent">
+          <span
+            className="text-sm font-semibold bg-linear-to-r from-purple-500
+           to-blue-500 bg-clip-text text-transparent"
+          >
             AI Assistant
           </span>
         </div>
       </div>
 
-      <p className="mb-3 text-sm font-medium">
-        How can I help with this post?
-      </p>
+      <p className="mb-3 text-sm font-medium">How can I help with this post?</p>
 
       {/* Textarea for custom prompt */}
       <div className="flex flex-col gap-2">
@@ -129,7 +144,8 @@ export function AIAssistant({ className, content, channelId, onGenerate }: AIAss
           className="w-full gap-2 bg-linear-to-r
            from-purple-500 from-50%  to-blue-500 text-white"
         >
-          {generateMutation.isPending && generateMutation.variables?.action === "generate" ? (
+          {generateMutation.isPending &&
+          generateMutation.variables?.action === "generate" ? (
             <Spinner />
           ) : (
             <Wand2Icon className="h-4 w-4" />
@@ -150,7 +166,8 @@ export function AIAssistant({ className, content, channelId, onGenerate }: AIAss
                 onClick={() => handleQuickAction(label)}
                 disabled={generateMutation.isPending || !canUseAI}
               >
-                {generateMutation.isPending && generateMutation.variables?.action === label.toLowerCase() ? (
+                {generateMutation.isPending &&
+                generateMutation.variables?.action === label.toLowerCase() ? (
                   <Spinner className="h-4 w-4 text-purple-500" />
                 ) : (
                   <Icon className="h-4 w-4 text-purple-500" />
@@ -169,5 +186,5 @@ export function AIAssistant({ className, content, channelId, onGenerate }: AIAss
         </span>
       </p>
     </div>
-  )
+  );
 }

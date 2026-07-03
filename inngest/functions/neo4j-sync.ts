@@ -1,10 +1,12 @@
 import { inngest } from "../client";
 import { getInsforgeAdminClient } from "@/lib/insforge-server";
-import { syncIdeaNode, syncPostNode, deletePostNode, runCypher } from "@/lib/neo4j";
+import {
+  syncIdeaNode,
+  syncPostNode,
+  deletePostNode,
+  runCypher,
+} from "@/lib/neo4j";
 
-/**
- * Inngest function to sync an Idea node when created or updated
- */
 export const syncIdeaInngest = inngest.createFunction(
   {
     id: "sync-idea-neo4j",
@@ -16,7 +18,6 @@ export const syncIdeaInngest = inngest.createFunction(
   async ({ event, step }) => {
     const { ideaId } = event.data;
 
-    // Fetch the idea details from Postgres using Admin client
     const idea = await step.run("fetch-idea-details", async () => {
       const insforge = getInsforgeAdminClient();
       const { data, error } = await insforge.database
@@ -31,7 +32,6 @@ export const syncIdeaInngest = inngest.createFunction(
       return data;
     });
 
-    // Write to Neo4j
     await step.run("sync-idea-node", async () => {
       await syncIdeaNode({
         id: idea.id,
@@ -42,12 +42,9 @@ export const syncIdeaInngest = inngest.createFunction(
     });
 
     return { success: true, ideaId };
-  }
+  },
 );
 
-/**
- * Inngest function to delete an Idea node when deleted
- */
 export const deleteIdeaInngest = inngest.createFunction(
   {
     id: "delete-idea-neo4j",
@@ -68,12 +65,9 @@ export const deleteIdeaInngest = inngest.createFunction(
     });
 
     return { success: true, ideaId };
-  }
+  },
 );
 
-/**
- * Inngest function to sync a Post node when scheduled or created
- */
 export const syncPostInngest = inngest.createFunction(
   {
     id: "sync-post-neo4j",
@@ -85,7 +79,6 @@ export const syncPostInngest = inngest.createFunction(
   async ({ event, step }) => {
     const { postId, ideaId } = event.data;
 
-    // Fetch the post details from Postgres including user_channels and channel_types
     const postWithChannel = await step.run("fetch-post-details", async () => {
       const insforge = getInsforgeAdminClient();
       const { data, error } = await insforge.database
@@ -124,12 +117,9 @@ export const syncPostInngest = inngest.createFunction(
     });
 
     return { success: true, postId };
-  }
+  },
 );
 
-/**
- * Inngest function to delete a Post node when deleted
- */
 export const deletePostInngest = inngest.createFunction(
   {
     id: "delete-post-neo4j",
@@ -146,5 +136,5 @@ export const deletePostInngest = inngest.createFunction(
     });
 
     return { success: true, postId };
-  }
+  },
 );

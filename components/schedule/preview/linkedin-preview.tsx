@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -6,7 +7,6 @@ import {
   MessageCircle,
   Repeat2,
   Send,
-  Globe,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -82,7 +82,7 @@ export function LinkedinPreview({
           <MoreHorizontal className="size-5 text-muted-foreground" />
         </div>
 
-        <div className="text-sm leading-normal whitespace-pre-wrap break-words px-3 mb-3">
+        <div className="text-sm leading-normal whitespace-pre-wrap wrap-break-word px-3 mb-3">
           {!text ? (
             <span className="text-muted-foreground italic">Nothing yet…</span>
           ) : text.length > CHAR_LIMIT && !isExpanded ? (
@@ -102,7 +102,6 @@ export function LinkedinPreview({
           )}
         </div>
 
-        {/* Image Display - Horizontal Scroll */}
         {images && images.length > 0 && (
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {images.map((image, index) => (

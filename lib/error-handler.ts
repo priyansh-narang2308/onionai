@@ -7,6 +7,7 @@ export class AppError extends Error {
     public code: string,
     public message: string,
     public statusCode: number = 500,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public details?: Record<string, any>,
   ) {
     super(message);
