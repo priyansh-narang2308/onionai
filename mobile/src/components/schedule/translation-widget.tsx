@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -7,12 +8,11 @@ import {
   Modal,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
 import { fetchWithAuth } from "../../lib/api";
-import { Globe, X, CheckCircle } from "lucide-react-native";
+import { X, CheckCircle } from "lucide-react-native";
 import { useToast } from "../ui/toast";
 
 interface TranslationWidgetProps {

@@ -2,7 +2,7 @@
 
 **Enterprise-Grade AI-Powered Social Media Management Platform**
 
-🚀 **Complete, Production-Ready Application** | Web + Mobile | All Platforms Implemented
+**Complete, Production-Ready Application** | Web + Mobile | All Platforms Implemented
 
 OnionAI is a full-stack SaaS application for AI-powered social media content creation, scheduling, and automated multi-platform publishing. Create once, publish everywhere—all with intelligent AI assistance.
 

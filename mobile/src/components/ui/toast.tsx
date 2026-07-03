@@ -1,39 +1,40 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react"
-import { Animated, Text, View, StyleSheet } from "react-native"
-import { CheckCircle, XCircle, AlertCircle, X } from "lucide-react-native"
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { Animated, Text, View, StyleSheet } from "react-native";
+import { CheckCircle, XCircle, AlertCircle } from "lucide-react-native";
 
-type ToastType = "success" | "error" | "info"
+type ToastType = "success" | "error" | "info";
 
 type ToastItem = {
-  id: string
-  message: string
-  type: ToastType
-}
+  id: string;
+  message: string;
+  type: ToastType;
+};
 
 type ToastContextType = {
-  toast: (message: string, type?: ToastType) => void
-}
+  toast: (message: string, type?: ToastType) => void;
+};
 
-const ToastContext = createContext<ToastContextType>({ toast: () => {} })
+const ToastContext = createContext<ToastContextType>({ toast: () => {} });
 
 export function useToast() {
-  return useContext(ToastContext)
+  return useContext(ToastContext);
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<ToastItem[]>([])
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const toast = useCallback((message: string, type: ToastType = "success") => {
-    const id = Date.now().toString()
-    setToasts(prev => [...prev, { id, message, type }])
+    const id = Date.now().toString();
+    setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }, 3000)
-  }, [])
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  }, []);
 
   const dismiss = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   return (
     <ToastContext.Provider value={{ toast }}>
@@ -44,34 +45,70 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         ))}
       </View>
     </ToastContext.Provider>
-  )
+  );
 }
 
-function ToastItem({ item, onDismiss, index }: { item: ToastItem; onDismiss: (id: string) => void; index: number }) {
-  const [opacity] = useState(() => new Animated.Value(0))
-  const [translateY] = useState(() => new Animated.Value(-20))
+function ToastItem({
+  item,
+  index,
+}: {
+  item: ToastItem;
+  onDismiss: (id: string) => void;
+  index: number;
+}) {
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [translateY] = useState(() => new Animated.Value(-20));
 
   React.useEffect(() => {
     Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start()
-  }, [])
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
-  const icon = item.type === "success" ? CheckCircle : item.type === "error" ? XCircle : AlertCircle
-  const bgColor = item.type === "success" ? "#166534" : item.type === "error" ? "#991b1b" : "#1e3a5f"
+  const icon =
+    item.type === "success"
+      ? CheckCircle
+      : item.type === "error"
+        ? XCircle
+        : AlertCircle;
+  const bgColor =
+    item.type === "success"
+      ? "#166534"
+      : item.type === "error"
+        ? "#991b1b"
+        : "#1e3a5f";
 
   return (
     <Animated.View
       style={[
         styles.toast,
-        { backgroundColor: bgColor, opacity, transform: [{ translateY }], top: 60 + index * 60 },
+        {
+          backgroundColor: bgColor,
+          opacity,
+          transform: [{ translateY }],
+          top: 60 + index * 60,
+        },
       ]}
     >
-      {React.createElement(icon, { color: "#ffffff", size: 18, strokeWidth: 2.5 })}
-      <Text style={styles.toastText} numberOfLines={2}>{item.message}</Text>
+      {React.createElement(icon, {
+        color: "#ffffff",
+        size: 18,
+        strokeWidth: 2.5,
+      })}
+      <Text style={styles.toastText} numberOfLines={2}>
+        {item.message}
+      </Text>
     </Animated.View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -105,4 +142,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     flex: 1,
   },
-})
+});

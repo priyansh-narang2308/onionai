@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
@@ -22,13 +21,6 @@ import {
 } from "lucide-react-native";
 import { GraphVisualization } from "../../components/graph/graph-visualization";
 
-interface Stats {
-  draft: number;
-  queue: number;
-  published: number;
-  failed: number;
-}
-
 export default function DashboardTab() {
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState<"overview" | "graph">("overview");
@@ -41,6 +33,7 @@ export default function DashboardTab() {
 
   const totalPosts = stats
     ? Object.values(stats).reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (sum: number, val: any) => sum + (typeof val === "number" ? val : 0),
         0,
       )
