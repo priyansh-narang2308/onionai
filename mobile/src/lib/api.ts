@@ -1,7 +1,7 @@
-const DEV_API_URL = "https://magnisonant-scoreless-terrance.ngrok-free.dev"
-const PROD_API_URL = "https://onionai.vercel.app"
+const DEV_API_URL = "https://m93g5tk4.insforge.site";
+const PROD_API_URL = "https://m93g5tk4.insforge.site";
 
-export const API_BASE_URL = __DEV__ ? DEV_API_URL : PROD_API_URL
+export const API_BASE_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
 export async function fetchWithAuth(
   endpoint: string,

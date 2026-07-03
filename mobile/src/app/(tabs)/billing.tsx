@@ -22,7 +22,7 @@ import {
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
 
-const WEB_APP_URL = "https://onionai.app";
+const WEB_APP_URL = "https://m93g5tk4.insforge.site";
 
 export default function BillingTab() {
   const [isYearly, setIsYearly] = useState(false);
