@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from "react-native"
-import { X, Send, Trash2, Calendar, Check } from "lucide-react-native"
+import { X, Send, Trash2, Check } from "lucide-react-native"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/clerk-expo"
 import { Post } from "../../types/post.type"
@@ -30,10 +30,12 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
 
   React.useEffect(() => {
     if (post) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setContent(post.content)
       setSelectedChannels(post.channels || [])
       setScheduleDate(post.scheduled_at ? post.scheduled_at.substring(0, 10) : "")
       setScheduleTime(post.scheduled_at ? post.scheduled_at.substring(11, 16) : "")
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [post])
 
@@ -41,7 +43,7 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
     if (!post || !content.trim()) return
     setSaving(true)
     try {
-      const body: any = { content, channels: selectedChannels }
+      const body: Record<string, unknown> = { content, channels: selectedChannels }
       if (scheduleDate) body.scheduled_at = `${scheduleDate}T${scheduleTime || "09:00"}:00`
 
       const resp = await fetchWithAuth(`/api/post?id=${post.id}`, {
@@ -54,8 +56,9 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
         queryClient.invalidateQueries({ queryKey: ["posts"] })
         onClose()
       }
-    } catch (err: any) {
-      toast(err?.message || "Failed to update", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update"
+      toast(message, "error")
     } finally {
       setSaving(false)
     }
@@ -75,8 +78,9 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
         queryClient.invalidateQueries({ queryKey: ["posts"] })
         onClose()
       }
-    } catch (err: any) {
-      toast(err?.message || "Failed to publish", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to publish"
+      toast(message, "error")
     } finally {
       setSaving(false)
     }
@@ -90,8 +94,9 @@ export function EditPostDialog({ visible, onClose, post }: Props) {
       toast("Post deleted", "success")
       queryClient.invalidateQueries({ queryKey: ["posts"] })
       onClose()
-    } catch (err: any) {
-      toast(err?.message || "Failed to delete", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete"
+      toast(message, "error")
     } finally {
       setSaving(false)
     }

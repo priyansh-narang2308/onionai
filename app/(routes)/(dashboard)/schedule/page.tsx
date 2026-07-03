@@ -15,9 +15,9 @@ const SchedulePageContent = () => {
   const [activeView, setActiveView] = useQueryState("view", {
     defaultValue: "calendar",
   });
-  const [_, setStatus] = useQueryState("status", {
+  const setStatus = useQueryState("status", {
     defaultValue: "",
-  });
+  })[1];
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
   return (
     <div className="flex flex-col h-full">

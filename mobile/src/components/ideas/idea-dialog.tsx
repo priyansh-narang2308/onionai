@@ -25,8 +25,10 @@ export function IdeaDialog({ visible, onClose, idea }: Props) {
 
   React.useEffect(() => {
     if (idea) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setContent(idea.content)
       setGroup(idea.group || "others")
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [idea])
 
@@ -41,8 +43,9 @@ export function IdeaDialog({ visible, onClose, idea }: Props) {
       queryClient.invalidateQueries({ queryKey: ["ideas"] })
       toast("Idea updated", "success")
       onClose()
-    } catch (err: any) {
-      toast(err?.message || "Failed to update", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update"
+      toast(message, "error")
     } finally {
       setSaving(false)
     }
@@ -73,8 +76,9 @@ export function IdeaDialog({ visible, onClose, idea }: Props) {
       queryClient.invalidateQueries({ queryKey: ["ideas"] })
       toast("Idea deleted", "success")
       onClose()
-    } catch (err: any) {
-      toast(err?.message || "Failed to delete", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete"
+      toast(message, "error")
     } finally {
       setSaving(false)
     }

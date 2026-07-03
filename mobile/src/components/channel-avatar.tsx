@@ -1,6 +1,5 @@
 import React from "react"
 import { View, Text, Image } from "react-native"
-import { getChannelInfo } from "../constants/channels"
 
 type Props = {
   type: string
@@ -13,14 +12,13 @@ type Props = {
 export function ChannelAvatar({ type, color, profileImage, name, size = "md" }: Props) {
   const dim = size === "sm" ? 32 : 40
   const badgeDim = size === "sm" ? 15 : 20
-  const channel = getChannelInfo(type)
   const initials = type?.substring(0, 2).toUpperCase() || "ON"
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={{ width: dim, height: dim, borderRadius: dim / 2, borderWidth: 1, borderColor: "#e4e4e7", overflow: "visible" }}>
         {profileImage ? (
-          <Image source={{ uri: profileImage }} style={{ width: dim, height: dim, borderRadius: dim / 2 }} />
+          <Image source={{ uri: profileImage }} style={{ width: dim, height: dim, borderRadius: dim / 2 }} alt="" />
         ) : (
           <View style={{ width: dim, height: dim, borderRadius: dim / 2, backgroundColor: color || "#09090b", alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: "#ffffff", fontWeight: "700", fontSize: size === "sm" ? 10 : 12 }}>{initials}</Text>

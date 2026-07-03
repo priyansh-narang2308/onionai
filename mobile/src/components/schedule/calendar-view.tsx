@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react"
-import { View, Text, TouchableOpacity, ScrollView } from "react-native"
+import { View, Text, TouchableOpacity } from "react-native"
 import { ChevronLeft, ChevronRight } from "lucide-react-native"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isToday } from "date-fns"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, addMonths, subMonths, parseISO, isToday } from "date-fns"
 import { Post, PostStatus } from "../../types/post.type"
 import { getChannelInfo } from "../../constants/channels"
 
@@ -12,13 +12,6 @@ type Props = {
   onSelectPost: (post: Post) => void
 }
 
-const STATUS_BG: Record<PostStatus | "all", string> = {
-  draft: "#f4f4f5",
-  queue: "#fef9c3",
-  published: "#f0fdf4",
-  failed: "#fef2f2",
-  all: "#f4f4f5",
-}
 const STATUS_DOT: Record<PostStatus | "all", string> = {
   draft: "#a1a1aa",
   queue: "#eab308",

@@ -62,9 +62,9 @@ export function IdeaKanban({ ideas, onSelectIdea, onDeleteIdea }: Props) {
       setNewIdeaText("");
       setAddingTo(null);
       toast("Idea created!", "success");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      toast(err?.message || "Failed to create idea", "error");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create idea";
+      toast(message, "error");
     } finally {
       setCreating(false);
     }

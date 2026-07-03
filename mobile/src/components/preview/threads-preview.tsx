@@ -18,7 +18,7 @@ export function ThreadsPreview({ content, images = [] }: Props) {
       <Text style={{ fontSize: 15, color: "#09090b", lineHeight: 21 }}>{content}</Text>
       {images.length > 0 && (
         <View style={{ marginTop: 10, borderRadius: 12, overflow: "hidden" }}>
-          <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 200 }} />
+          <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 200 }} alt="" />
         </View>
       )}
       <View style={{ flexDirection: "row", gap: 40, marginTop: 12 }}>

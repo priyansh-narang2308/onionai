@@ -18,7 +18,7 @@ export function InstagramPreview({ content, images = [] }: Props) {
         <MoreHorizontal color="#09090b" size={20} />
       </View>
       {images.length > 0 ? (
-        <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 220 }} />
+        <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 220 }} alt="" />
       ) : (
         <View style={{ width: "100%", height: 220, backgroundColor: "#f4f4f5" }} />
       )}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal, StyleSheet } from "react-native"
 import { ImagePlus, Smile, Sparkles, X } from "lucide-react-native"
 import { ImageObject } from "../types/post.type"
@@ -14,7 +14,6 @@ type Props = {
   onImagesChange?: (images: ImageObject[]) => void
   disabled?: boolean
   renderToolbarRight?: React.ReactNode
-  maxLength?: number
 }
 
 const EMOJIS = ["😀", "😂", "❤️", "🔥", "👍", "🎉", "🚀", "💡", "📝", "🎯", "✨", "🙌", "💪", "🤝", "⭐", "💥", "👏", "🔥", "💯", "🎊"]
@@ -23,7 +22,7 @@ export function ContentTextarea({
   value, onChange, placeholder = "What's on your mind?",
   minHeight = 280, showAIAssistant = false, onAIAssistantClick,
   images = [], onImagesChange, disabled = false,
-  renderToolbarRight, maxLength,
+  renderToolbarRight,
 }: Props) {
   const [showEmoji, setShowEmoji] = useState(false)
 
@@ -59,7 +58,7 @@ export function ContentTextarea({
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagesRow}>
             {images.map((img, i) => (
               <View key={img.key || i} style={styles.imageThumbOuter}>
-                <Image source={{ uri: img.url }} style={styles.imageThumb} />
+                <Image source={{ uri: img.url }} style={styles.imageThumb} alt="" />
                 <TouchableOpacity style={styles.imageRemoveBtn} onPress={() => removeImage(i)}>
                   <X color="#ffffff" size={12} />
                 </TouchableOpacity>

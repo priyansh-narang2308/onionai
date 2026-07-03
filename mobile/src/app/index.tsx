@@ -49,7 +49,7 @@ export default function Index() {
     if (isAuthLoaded && isSignedIn) {
       router.replace("/(tabs)/ideas");
     }
-  }, [isSignedIn, isAuthLoaded]);
+  }, [isSignedIn, isAuthLoaded, router]);
 
   // Warm up standard browser to improve UX in OAuth
   useEffect(() => {
@@ -68,13 +68,13 @@ export default function Index() {
         await setActive({ session: createdSessionId });
         router.replace("/(tabs)/ideas");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Google OAuth error:", err);
-      alert(err.message || "Failed to log in with Google");
+      alert(err instanceof Error ? err.message : "Failed to log in with Google");
     } finally {
       setLoading(false);
     }
-  }, [startOAuthFlow]);
+  }, [startOAuthFlow, router]);
 
   // Credentials sign in trigger
   const handleSignIn = async () => {
@@ -98,9 +98,10 @@ export default function Index() {
         console.warn("MFA or extra verification needed:", attempt);
         alert("Verification or extra steps required.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Sign-in error:", err);
-      alert(err.errors?.[0]?.message || "Authentication failed. Check your credentials.");
+      const message = err instanceof Error ? err.message : "Authentication failed. Check your credentials.";
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -122,9 +123,10 @@ export default function Index() {
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setVerificationStep(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Sign-up error:", err);
-      alert(err.errors?.[0]?.message || "Registration failed.");
+      const message = err instanceof Error ? err.message : "Registration failed.";
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -151,9 +153,10 @@ export default function Index() {
         console.warn("Sign-up verification incomplete:", attempt);
         alert("Verification failed or incomplete.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Verification error:", err);
-      alert(err.errors?.[0]?.message || "Verification code is incorrect.");
+      const message = err instanceof Error ? err.message : "Verification code is incorrect.";
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -309,7 +312,7 @@ export default function Index() {
                 <View>
                   <Text style={styles.authCardTitle}>Verify Email</Text>
                   <Text style={styles.verificationPrompt}>
-                    We've sent a validation code to your email. Please enter it below to activate your account.
+                    {"We've sent a validation code to your email. Please enter it below to activate your account."}
                   </Text>
                   
                   <View style={styles.formGroup}>

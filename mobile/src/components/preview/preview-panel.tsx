@@ -1,5 +1,5 @@
 import React from "react"
-import { View, Text, ScrollView, TouchableOpacity } from "react-native"
+import { View, Text, ScrollView } from "react-native"
 import { TwitterPreview } from "./twitter-preview"
 import { LinkedInPreview } from "./linkedin-preview"
 import { InstagramPreview } from "./instagram-preview"
@@ -9,7 +9,7 @@ import { BlueskyPreview } from "./bluesky-preview"
 import { YouTubePreview } from "./youtube-preview"
 import { ImageObject } from "../../types/post.type"
 
-const previewMap: Record<string, { label: string; Component: React.ComponentType<any> }> = {
+const previewMap: Record<string, { label: string; Component: React.ComponentType<{ content: string; images?: ImageObject[] }> }> = {
   twitter: { label: "X / Twitter", Component: TwitterPreview },
   linkedin: { label: "LinkedIn", Component: LinkedInPreview },
   instagram: { label: "Instagram", Component: InstagramPreview },

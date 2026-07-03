@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator, Alert } from "react-native"
-import { X, Check, Send, Sparkles, Lightbulb, Eye, ChevronDown, Calendar } from "lucide-react-native"
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from "react-native"
+import { X, Send, Sparkles, Lightbulb, Eye, ChevronDown, Calendar } from "lucide-react-native"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/clerk-expo"
 import { ContentTextarea } from "../content-textarea"
@@ -52,7 +52,7 @@ export function CreatePostDialog({ visible, onClose, initialContent, initialChan
 
     setPublishing(true)
     try {
-      const body: any = {
+      const body: Record<string, unknown> = {
         content,
         channels: selectedChannels,
         status,
@@ -71,8 +71,9 @@ export function CreatePostDialog({ visible, onClose, initialContent, initialChan
         queryClient.invalidateQueries({ queryKey: ["posts"] })
         onClose()
       }
-    } catch (err: any) {
-      toast(err?.message || "Failed to create post", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create post"
+      toast(message, "error")
     } finally {
       setPublishing(false)
     }

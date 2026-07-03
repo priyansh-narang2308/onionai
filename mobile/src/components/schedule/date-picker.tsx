@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal } from "react-native"
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addDays } from "date-fns"
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay } from "date-fns"
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react-native"
 
 type Props = {

@@ -1,5 +1,5 @@
 import React from "react"
-import { View, Text, Image } from "react-native"
+import { View, Text } from "react-native"
 import { ThumbsUp, MessageCircle, Eye, Clock } from "lucide-react-native"
 
 type Props = { content: string }

@@ -18,7 +18,7 @@ export function TwitterPreview({ content, images = [] }: Props) {
       <Text style={{ fontSize: 15, color: "#09090b", lineHeight: 20 }}>{content}</Text>
       {images.length > 0 && (
         <View style={{ marginTop: 12, borderRadius: 14, overflow: "hidden" }}>
-          <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 200 }} />
+          <Image source={{ uri: images[0].url }} style={{ width: "100%", height: 200 }} alt="" />
         </View>
       )}
       <View style={{ flexDirection: "row", gap: 48, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#f4f4f5" }}>

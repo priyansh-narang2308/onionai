@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
@@ -16,24 +15,12 @@ import { Network, BarChart3, RefreshCw } from "lucide-react-native";
 interface GraphNode {
   id: string;
   label: string;
-  type: string; // 'idea', 'post', 'channel', 'platform'
+  type: string;
   color?: string;
-}
-
-interface GraphLink {
-  source: string;
-  target: string;
-  label?: string;
-}
-
-interface GraphData {
-  nodes: GraphNode[];
-  links: GraphLink[];
 }
 
 export function GraphVisualization() {
   const { getToken } = useAuth();
-  const [stats, setStats] = useState<Record<string, number>>({});
 
   const {
     data: graphData,
@@ -44,15 +31,13 @@ export function GraphVisualization() {
     queryFn: () => fetchWithAuth("/api/graph", { method: "GET" }, getToken),
   });
 
-  useEffect(() => {
-    if (graphData?.nodes) {
-      // Calculate statistics
-      const typeCount: Record<string, number> = {};
-      graphData.nodes.forEach((node: GraphNode) => {
-        typeCount[node.type] = (typeCount[node.type] || 0) + 1;
-      });
-      setStats(typeCount);
-    }
+  const stats = useMemo(() => {
+    if (!graphData?.nodes) return {};
+    const typeCount: Record<string, number> = {};
+    graphData.nodes.forEach((node: GraphNode) => {
+      typeCount[node.type] = (typeCount[node.type] || 0) + 1;
+    });
+    return typeCount;
   }, [graphData]);
 
   const getNodeColor = (type: string) => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, parse, set, addDays } from "date-fns";
+import { format, parse, set } from "date-fns";
 import { fetchWithAuth } from "../../lib/api";
 import {
   Calendar as CalendarIcon,
@@ -23,15 +23,11 @@ import {
   Plus,
   X,
   Clock,
-  Sparkles,
-  ChevronRight,
   FileText,
   CheckCircle,
   Send,
-  Edit3,
 } from "lucide-react-native";
 import { useToast } from "../../components/ui/toast";
-import { POST_STATUS } from "../../constants/post";
 import { DatePicker } from "../../components/schedule/date-picker";
 
 interface ScheduledPost {

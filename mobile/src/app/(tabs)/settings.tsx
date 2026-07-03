@@ -11,9 +11,10 @@ import * as WebBrowser from "expo-web-browser"
 import { fetchWithAuth } from "../../lib/api"
 import {
   Settings, User as UserIcon, Layers, Palette, LogOut,
-  Plus, RefreshCw, CheckCircle2, AlertCircle, HelpCircle,
+  Plus, RefreshCw, CheckCircle2, AlertCircle,
 } from "lucide-react-native"
 import { useToast } from "../../components/ui/toast"
+import { ChannelType } from "../../types/channel.type"
 
 export default function SettingsTab() {
   const router = useRouter()
@@ -39,7 +40,7 @@ export default function SettingsTab() {
       queryClient.invalidateQueries({ queryKey: ["channels"] })
       toast("Channel disconnected")
     },
-    onError: (err: any) => { toast(err.message || "Failed to disconnect", "error") },
+    onError: (err: Error) => { toast(err.message || "Failed to disconnect", "error") },
   })
 
   const connectMutation = useMutation({
@@ -48,14 +49,14 @@ export default function SettingsTab() {
     onSuccess: async ({ url }: { url: string }) => {
       if (url) await WebBrowser.openBrowserAsync(url)
     },
-    onError: (err: any) => { toast(err.message || "Failed to connect", "error") },
+    onError: (err: Error) => { toast(err.message || "Failed to connect", "error") },
   })
 
   const handleSignOut = async () => {
     try {
       await signOut()
       router.replace("/")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Sign out error:", err)
     }
   }
@@ -97,7 +98,7 @@ export default function SettingsTab() {
               <View style={styles.profileCard}>
                 <View style={styles.profileMetaRow}>
                   {user.imageUrl ? (
-                    <Image source={{ uri: user.imageUrl }} style={styles.avatarImage} />
+                    <Image source={{ uri: user.imageUrl }} style={styles.avatarImage} alt="" />
                   ) : (
                     <View style={styles.avatarPlaceholder}><UserIcon color="#71717a" size={32} /></View>
                   )}
@@ -158,7 +159,7 @@ export default function SettingsTab() {
               </View>
             ) : (
               <View style={styles.channelsList}>
-                {channels.map((channel: any) => {
+                {channels.map((channel: ChannelType) => {
                   const isConnected = channel.connected
                   const isPendingAction =
                     (connectMutation.isPending && connectMutation.variables === channel.id) ||

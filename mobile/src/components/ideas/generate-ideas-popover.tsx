@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from "react-native"
 import { X, Sparkles, Wand2, MessageSquare, Target, Zap } from "lucide-react-native"
@@ -43,14 +42,12 @@ export function GenerateIdeasPopover({ visible, onClose }: Props) {
   const [step, setStep] = useState<"template" | "custom" | "generating" | "results">("template")
   const [customPrompt, setCustomPrompt] = useState("")
   const [generatedIdeas, setGeneratedIdeas] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { getToken } = useAuth()
 
   const handleGenerate = async (prompt: string) => {
     setStep("generating")
-    setLoading(true)
     try {
       const resp = await fetchWithAuth("/api/idea/generate-ideas", {
         method: "POST",
@@ -59,11 +56,10 @@ export function GenerateIdeasPopover({ visible, onClose }: Props) {
       const data = await resp.json()
       setGeneratedIdeas(data.ideas || [])
       setStep("results")
-    } catch (err: any) {
-      toast(err?.message || "Failed to generate", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to generate"
+      toast(message, "error")
       setStep("template")
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -75,8 +71,9 @@ export function GenerateIdeasPopover({ visible, onClose }: Props) {
       }, getToken)
       queryClient.invalidateQueries({ queryKey: ["ideas"] })
       toast("Idea saved!", "success")
-    } catch (err: any) {
-      toast(err?.message || "Failed to save", "error")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to save"
+      toast(message, "error")
     }
   }
 
