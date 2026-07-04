@@ -511,7 +511,7 @@ const CreatePostDialog = ({ open, onOpenChange, selectedDate }: PropsType) => {
                                 handleGlobalContentChange(
                                   (globalContent?.text
                                     ? globalContent.text + " "
-                                    : "") + transcript
+                                    : "") + transcript,
                                 )
                               }
                             />
@@ -647,7 +647,7 @@ dark:text-amber-400"
                                             (content?.text
                                               ? content.text + " "
                                               : "") + transcript,
-                                            channel.character_limit
+                                            channel.character_limit,
                                           )
                                         }
                                       />

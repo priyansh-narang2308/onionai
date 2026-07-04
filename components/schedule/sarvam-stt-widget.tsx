@@ -79,7 +79,7 @@ export function SarvamSTTWidget({ onTranscript }: SarvamSTTWidgetProps) {
       } else {
         toast.warning("Could not detect clear speech in the audio.");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.message || "Something went wrong transcribing speech");
     } finally {
