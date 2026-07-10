@@ -5,6 +5,7 @@ import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "../components/ui/toast";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 
 const tokenCache = {
   async getToken(key: string) {
@@ -34,15 +35,17 @@ export default function RootLayout() {
       <ClerkLoaded>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
-            <ToastProvider>
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: "#ffffff" },
-                }}
-              />
-            </ToastProvider>
+            <ThemeProvider value={DefaultTheme}>
+              <ToastProvider>
+                <StatusBar style="dark" />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: "#ffffff" },
+                  }}
+                />
+              </ToastProvider>
+            </ThemeProvider>
           </SafeAreaProvider>
         </QueryClientProvider>
       </ClerkLoaded>

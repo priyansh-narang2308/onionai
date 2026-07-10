@@ -129,7 +129,7 @@ export function AIAssistant({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Eg. Promote my photography course to get new signups. Registration closes in 3 days."
-          className="w-full min-h-[130px] resize-none"
+          className="w-full min-h-32.5 resize-none"
           disabled={!canUseAI}
         />
 
